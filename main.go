@@ -3,11 +3,16 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 )
 
-const addr = ":4001"
-
 func main() {
-	log.Println("listening on", addr)
-	log.Fatalln(http.ListenAndServe(addr, nil))
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+
+	log.Println("listening on", port)
+	log.Fatalln(http.ListenAndServe(":"+port, nil))
 }

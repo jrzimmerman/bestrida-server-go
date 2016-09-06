@@ -1,0 +1,1 @@
+web: bestrida-server-go
