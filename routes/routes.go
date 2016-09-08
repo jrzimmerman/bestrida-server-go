@@ -1,15 +1,19 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/jrzimmerman/bestrida-server-go/handlers"
 )
 
-// HelloHandler returns "Hello World" to the request
-func HelloHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Hello world")
-}
-
-func routes() {
-	http.HandleFunc("/", HelloHandler)
+// API initializes routes with Gin
+func API() http.Handler {
+	r := gin.Default()
+	api := r.Group("/api")
+	{
+		api.GET("athletes/:id", handlers.GetSingleAthlete)
+	}
+	return r
 }
