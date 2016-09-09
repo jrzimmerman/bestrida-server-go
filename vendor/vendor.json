@@ -9,6 +9,12 @@
 			"revisionTime": "2016-08-29T20:23:21Z"
 		},
 		{
+			"checksumSHA1": "N0U6Eow0jWYAOSxLymEQwjFceCo=",
+			"path": "github.com/braintree/manners",
+			"revision": "82a8879fc5fd0381fa8b2d8033b19bf255252088",
+			"revisionTime": "2016-04-18T04:36:13Z"
+		},
+		{
 			"checksumSHA1": "XxSDNaJf0LpjvMapDmmhNIlf+MQ=",
 			"path": "github.com/gin-gonic/gin",
 			"revision": "5caaac4c5c712a9e7a7de29e6c24ef46c753017f",
