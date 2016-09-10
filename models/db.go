@@ -1,21 +1,28 @@
 package models
 
-// "github.com/Sirupsen/logrus"
-// "gopkg.in/mgo.v2"
+import (
+	"os"
 
-// var session *mgo.Session
+	"github.com/Sirupsen/logrus"
+	"gopkg.in/mgo.v2"
+)
 
-// func init() {
-// 	connection, ok := os.LookupEnv("DB_CONN")
-// 	if !ok {
-// 		logrus.WithField("DB_CONN", connection).Fatal("Database connection not passed as environment variable")
-// 	}
-// 	session, err := mgo.Dial(connection)
-// 	if err != nil {
-// 		logrus.WithError(err).Fatal("Unable to connnect to database")
-// 	}
-// }
+var session *mgo.Session
 
-// func Close() {
-// 	session.Close()
-// }
+// New returns a new session of the MongoDB
+func New() *mgo.Session {
+	connection, ok := os.LookupEnv("DB_CONN")
+	if !ok {
+		logrus.WithField("DB_CONN", connection).Fatal("Database connection not passed as environment variable")
+	}
+	session, err := mgo.Dial(connection)
+	if err != nil {
+		logrus.WithError(err).Fatal("Unable to connnect to database")
+	}
+	return session
+}
+
+// Close will close the MongoDB session
+func Close() {
+	session.Close()
+}
