@@ -41,16 +41,7 @@ type Challenge struct {
 func GetChallengeByID(id bson.ObjectId) (*Challenge, error) {
 	var c Challenge
 
-	s, err := New()
-	if err != nil {
-		log.WithError(err).Error("Unable to create new MongoDB Session")
-		return nil, err
-	}
-
-	defer s.Close()
-
-	err = s.DB("heroku_zgxbr4j2").C("challenges").Find(bson.M{"_id": id}).One(&c)
-	if err != nil {
+	if err := session.DB("heroku_zgxbr4j2").C("challenges").Find(bson.M{"_id": id}).One(&c); err != nil {
 		log.WithField("ID", id).Error("Unable to find challenge with id")
 		return nil, err
 	}

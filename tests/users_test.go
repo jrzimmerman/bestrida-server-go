@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/jrzimmerman/bestrida-server-go/handlers"
 	"github.com/jrzimmerman/bestrida-server-go/models"
-	"github.com/jrzimmerman/bestrida-server-go/routes"
 )
 
 func TestGetUserByID(t *testing.T) {
@@ -23,7 +23,7 @@ func TestGetUserByID(t *testing.T) {
 
 	// Send the request to the API
 	rec := httptest.NewRecorder()
-	routes.API().ServeHTTP(rec, req)
+	handlers.API().ServeHTTP(rec, req)
 
 	// Check the status code
 	if exp := http.StatusOK; rec.Code != exp {

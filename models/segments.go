@@ -33,21 +33,12 @@ type Segment struct {
 
 // GetSegmentByID gets a single stored segment from MongoDB
 func GetSegmentByID(id int) (*Segment, error) {
-	var seg Segment
+	var s Segment
 
-	s, err := New()
-	if err != nil {
-		log.WithError(err).Error("Unable to create new MongoDB Session")
-		return nil, err
-	}
-
-	defer s.Close()
-
-	err = s.DB("heroku_zgxbr4j2").C("segments").Find(bson.M{"_id": id}).One(&seg)
-	if err != nil {
+	if err := session.DB("heroku_zgxbr4j2").C("segments").Find(bson.M{"_id": id}).One(&s); err != nil {
 		log.WithField("ID", id).Error("Unable to find segment with id")
 		return nil, err
 	}
 
-	return &seg, nil
+	return &s, nil
 }

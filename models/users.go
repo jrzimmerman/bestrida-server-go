@@ -44,19 +44,10 @@ type User struct {
 func GetUserByID(id int) (*User, error) {
 	var u User
 
-	s, err := New()
-	if err != nil {
-		log.WithError(err).Error("Unable to create new MongoDB Session")
-		return nil, err
-	}
-
-	defer s.Close()
-
-	err = s.DB("heroku_zgxbr4j2").C("users").Find(bson.M{"_id": id}).One(&u)
-	if err != nil {
+	if err := session.DB("heroku_zgxbr4j2").C("users").Find(bson.M{"_id": id}).One(&u); err != nil {
 		log.WithField("ID", id).Error("Unable to find user with id")
 		return nil, err
 	}
 
-	return &u, err
+	return &u, nil
 }

@@ -13,8 +13,5 @@ RUN go install github.com/jrzimmerman/bestrida-server-go
 # Run the bestrida-server-go command by default when the container starts.
 ENTRYPOINT /go/bin/bestrida-server-go
 
-# Add environment variables
-ENV PORT=4001
-
 # Document that the service listens on port 4001.
 EXPOSE 4001

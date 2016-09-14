@@ -8,16 +8,11 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func getEnvString(env string) string {
-	str, ok := os.LookupEnv(env)
-	if !ok {
-		log.WithField("env", env).Fatal("Missing required environment variable")
-	}
-	return str
-}
+// global session to be used in models
+var session *mgo.Session
 
-// New returns a new session of the MongoDB
-func New() (*mgo.Session, error) {
+// Create new MongoDB session on init
+func init() {
 	host := getEnvString("DB_HOST")
 	name := getEnvString("DB_NAME")
 	username := getEnvString("DB_USER")
@@ -31,10 +26,22 @@ func New() (*mgo.Session, error) {
 		Username: username,
 		Password: password,
 	}
-
-	session, err := mgo.DialWithInfo(dbInfo)
+	var err error
+	session, err = mgo.DialWithInfo(dbInfo)
 	if err != nil {
-		log.WithError(err).Error("Unable to create new session")
+		log.WithError(err).Fatal("Unable to create new session")
 	}
-	return session, err
+}
+
+func getEnvString(env string) string {
+	str, ok := os.LookupEnv(env)
+	if !ok {
+		log.WithField("env", env).Fatal("Missing required environment variable")
+	}
+	return str
+}
+
+// Close will close the global MongoDB session
+func Close() {
+	session.Close()
 }
