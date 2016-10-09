@@ -1,4 +1,4 @@
-package handlers
+package handlers_test
 
 import (
 	"encoding/json"
@@ -7,7 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gopkg.in/mgo.v2/bson"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/jrzimmerman/bestrida-server-go/handlers"
 	"github.com/jrzimmerman/bestrida-server-go/models"
 )
 
@@ -22,7 +25,7 @@ func TestGetChallengeByID(t *testing.T) {
 
 	// Send the request to the API
 	rec := httptest.NewRecorder()
-	API().ServeHTTP(rec, req)
+	handlers.API().ServeHTTP(rec, req)
 
 	// Check the status code
 	if exp := http.StatusOK; rec.Code != exp {
@@ -30,14 +33,14 @@ func TestGetChallengeByID(t *testing.T) {
 	}
 
 	// Unmarshal and check the response body
-	var u models.User
-	if err := json.NewDecoder(rec.Body).Decode(&u); err != nil {
+	var c models.Challenge
+	if err := json.NewDecoder(rec.Body).Decode(&c); err != nil {
 		t.Fatalf("unable to decode response: %s", err)
 	}
 
-	log.WithField("User ID", u.ID).Info("User returned from MongoDB")
+	log.WithField("Challenge ID", c.ID).Info("User returned from MongoDB")
 
-	if u.ID != id {
+	if c.ID != bson.ObjectIdHex(id) {
 		t.Fatalf("unexpected user")
 	}
 }
