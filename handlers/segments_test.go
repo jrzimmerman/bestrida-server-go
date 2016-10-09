@@ -1,4 +1,4 @@
-package handlers
+package handlers_test
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/jrzimmerman/bestrida-server-go/handlers"
 	"github.com/jrzimmerman/bestrida-server-go/models"
 )
 
@@ -22,7 +23,7 @@ func TestGetSegmentByID(t *testing.T) {
 
 	// Send the request to the API
 	rec := httptest.NewRecorder()
-	API().ServeHTTP(rec, req)
+	handlers.API().ServeHTTP(rec, req)
 
 	// Check the status code
 	if exp := http.StatusOK; rec.Code != exp {

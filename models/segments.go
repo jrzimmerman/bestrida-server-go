@@ -7,28 +7,28 @@ import (
 
 // Map struct handles the MongoDB schema for each segments map
 type Map struct {
-	ID            string `json:"id"`
-	Polyline      string `json:"polyline"`
-	ResourceState int    `json:"resourceState"`
+	ID            string `bson:"id" json:"id"`
+	Polyline      string `bson:"polyline" json:"polyline"`
+	ResourceState int    `bson:"resource_state" json:"resource_state"`
 }
 
 // Segment struct handles the MongoDB schema for a segment
 type Segment struct {
-	ID                 int       `json:"_id"`
-	ResourceState      int       `json:"resourceState"`
-	Name               string    `json:"name"`
-	ActivityType       string    `json:"activityType"`
-	Distance           float64   `json:"distance"`
-	AverageGrade       float64   `json:"averageGrade"`
-	MaximumGrade       float64   `json:"maximumGrade"`
-	ClimbCategory      float64   `json:"climbCategory"`
-	City               string    `json:"city"`
-	State              string    `json:"string"`
-	Country            string    `json:"country"`
-	TotalElevationGain float64   `json:"totalElevationGain"`
-	EndLatLng          []float64 `json:"endLatLng"`
-	StartLatLng        []float64 `json:"startLatLng"`
-	Map                Map       `json:"map"`
+	ID                 int       `bson:"_id" json:"_id"`
+	ResourceState      int       `bson:"resourceState"json:"resourceState"`
+	Name               string    `bson:"name" json:"name"`
+	ActivityType       string    `bson:"activityType" json:"activityType"`
+	Distance           float64   `bson:"distance" json:"distance"`
+	AverageGrade       float64   `bson:"averageGrade" json:"averageGrade"`
+	MaximumGrade       float64   `bson:"maximumGrade" json:"maximumGrade"`
+	ClimbCategory      float64   `bson:"climbCategory" json:"climbCategory"`
+	City               string    `bson:"city" json:"city"`
+	State              string    `bson:"state" json:"state"`
+	Country            string    `bson:"country" json:"country"`
+	TotalElevationGain float64   `bson:"totalElevationGain" json:"totalElevationGain"`
+	EndLatLng          []float64 `bson:"endLatLng" json:"endLatLng"`
+	StartLatLng        []float64 `bson:"startLatLng" json:"startLatLng"`
+	Map                Map       `bson:"map" json:"map"`
 }
 
 // GetSegmentByID gets a single stored segment from MongoDB
@@ -40,5 +40,6 @@ func GetSegmentByID(id int) (*Segment, error) {
 		return nil, err
 	}
 
+	log.WithField("Segment", &s).Info("Segment returned from MongoDB")
 	return &s, nil
 }

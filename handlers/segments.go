@@ -18,7 +18,13 @@ func GetSegmentByID(c *gin.Context) {
 		c.JSON(500, err)
 		return
 	}
+
+	// log segment ID
+	log.WithField("id", numID).Info("looking for segment by ID")
+
 	segment, err := models.GetSegmentByID(numID)
+	log.Infoln(segment)
+
 	if err != nil {
 		log.WithField("id", numID).Debug("unable to get segment by ID")
 		c.JSON(500, err)
