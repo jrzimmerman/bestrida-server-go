@@ -8,7 +8,7 @@ import (
 // Friend struct handles the MongoDB schema for each users friends
 type Friend struct {
 	ID             int    `bson:"_id" json:"id"`
-	UserName       string `bson:"username" json:"username"`
+	Username       string `bson:"username" json:"username"`
 	FirstName      string `bson:"firstName" json:"firstName"`
 	LastName       string `bson:"lastName" json:"lastName"`
 	FullName       string `bson:"fullName" json:"fullName"`
