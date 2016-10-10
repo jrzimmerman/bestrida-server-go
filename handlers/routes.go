@@ -10,9 +10,11 @@ import (
 func API() http.Handler {
 	r := gin.Default()
 	r.Use(CORS())
-	auth := r.Group("/auth")
+	s := r.Group("/strava")
 	{
-		auth.GET("strava", StravaAuth)
+		s.GET("auth", StravaAuth)
+		s.GET("athletes/:id", GetAthleteByIDFromStrava)
+		s.GET("athletes/:id/friends", GetFriendsByUserIDFromStrava)
 	}
 
 	api := r.Group("/api")
