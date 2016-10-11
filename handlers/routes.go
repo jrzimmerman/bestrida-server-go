@@ -15,6 +15,7 @@ func API() http.Handler {
 		s.GET("auth", StravaAuth)
 		s.GET("athletes/:id", GetAthleteByIDFromStrava)
 		s.GET("athletes/:id/friends", GetFriendsByUserIDFromStrava)
+		s.GET("athletes/:id/segments", GetSegmentsByUserIDFromStrava)
 	}
 
 	api := r.Group("/api")

@@ -59,12 +59,42 @@ func GetFriendsByUserIDFromStrava(c *gin.Context) {
 
 	client := strava.NewClient(user.Token)
 
-	log.Info("Fetching athlete info...\n")
+	log.Info("Fetching athlete friends info...\n")
 	friends, err := strava.NewCurrentAthleteService(client).ListFriends().Do()
 	if err != nil {
-		c.JSON(500, "Unable to retrieve friends info")
+		c.JSON(500, "Unable to retrieve athlete friends")
 		return
 	}
 
 	c.JSON(200, friends)
+}
+
+// GetSegmentsByUserIDFromStrava returns a list of segments for a specific user by ID from strava
+func GetSegmentsByUserIDFromStrava(c *gin.Context) {
+	id := c.Param("id")
+
+	numID, err := strconv.Atoi(id)
+	if err != nil {
+		log.WithField("ID", numID).Error("unable to convert ID param")
+		c.JSON(500, "unable to convert ID param")
+		return
+	}
+
+	user, err := models.GetUserByID(numID)
+	if err != nil {
+		log.WithField("ID", numID).Error("unable to retrieve user from database")
+		c.JSON(500, "unable to retrieve user from database")
+		return
+	}
+
+	client := strava.NewClient(user.Token)
+
+	log.Info("Fetching athlete activity info...\n")
+	activities, err := strava.NewCurrentAthleteService(client).ListActivities().Do()
+	if err != nil {
+		c.JSON(500, "Unable to retrieve athlete activities")
+		return
+	}
+
+	c.JSON(200, activities)
 }
