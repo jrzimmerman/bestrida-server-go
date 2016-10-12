@@ -12,7 +12,7 @@ import (
 	"github.com/jrzimmerman/bestrida-server-go/models"
 )
 
-func TestGetSegmentByID(t *testing.T) {
+func TestGetSegmentByIDSuccess(t *testing.T) {
 	id := 2539276
 
 	// Create the http request
@@ -40,5 +40,24 @@ func TestGetSegmentByID(t *testing.T) {
 
 	if s.ID != id {
 		t.Fatalf("unexpected segment")
+	}
+}
+
+func TestGetSegmentByIDFailure(t *testing.T) {
+	id := 0
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/api/segments/%v", id), nil)
+	if err != nil {
+		t.Fatal("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; rec.Code != exp {
+		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
 	}
 }
