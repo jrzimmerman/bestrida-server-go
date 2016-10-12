@@ -14,7 +14,7 @@ import (
 	"github.com/jrzimmerman/bestrida-server-go/models"
 )
 
-func TestGetChallengeByID(t *testing.T) {
+func TestGetChallengeByIDSuccess(t *testing.T) {
 	id := "57be4f7ef7fb96130084f0b2"
 
 	// Create the http request
@@ -42,5 +42,43 @@ func TestGetChallengeByID(t *testing.T) {
 
 	if c.ID != bson.ObjectIdHex(id) {
 		t.Fatalf("unexpected user")
+	}
+}
+
+func TestGetChallengeByIDFailureID(t *testing.T) {
+	id := bson.NewObjectId()
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/api/challenges/%v", id), nil)
+	if err != nil {
+		t.Fatal("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; rec.Code != exp {
+		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
+	}
+}
+
+func TestGetChallengeByIDFailureString(t *testing.T) {
+	id := "bsonID"
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/api/challenges/%v", id), nil)
+	if err != nil {
+		t.Fatal("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; rec.Code != exp {
+		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
 	}
 }
