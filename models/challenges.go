@@ -42,7 +42,7 @@ func GetChallengeByID(id bson.ObjectId) (*Challenge, error) {
 	var c Challenge
 
 	if err := session.DB("heroku_zgxbr4j2").C("challenges").Find(bson.M{"_id": id}).One(&c); err != nil {
-		log.WithField("ID", id).Error("Unable to find challenge with id")
+		log.WithField("ID", id).Error("Unable to find challenge with id in database")
 		return nil, err
 	}
 

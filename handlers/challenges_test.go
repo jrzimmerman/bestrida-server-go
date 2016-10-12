@@ -46,7 +46,7 @@ func TestGetChallengeByIDSuccess(t *testing.T) {
 }
 
 func TestGetChallengeByIDFailureID(t *testing.T) {
-	id := bson.NewObjectId()
+	id := "57fe7835bdb0181b8cfe0510"
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/api/challenges/%v", id), nil)
