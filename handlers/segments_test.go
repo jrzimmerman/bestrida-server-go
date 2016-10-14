@@ -18,7 +18,7 @@ func TestGetSegmentByIDSuccess(t *testing.T) {
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/api/segments/%v", id), nil)
 	if err != nil {
-		t.Fatal("unable to generate request", err)
+		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
@@ -27,19 +27,19 @@ func TestGetSegmentByIDSuccess(t *testing.T) {
 
 	// Check the status code
 	if exp := http.StatusOK; rec.Code != exp {
-		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
 	}
 
 	// Unmarshal and check the response body
 	var s models.Segment
 	if err := json.NewDecoder(rec.Body).Decode(&s); err != nil {
-		t.Fatalf("unable to decode response: %s", err)
+		t.Errorf("unable to decode response: %s", err)
 	}
 
 	log.WithField("Segment ID", s.ID).Info("Segment returned from MongoDB")
 
 	if s.ID != id {
-		t.Fatalf("unexpected segment")
+		t.Errorf("unexpected segment")
 	}
 }
 
@@ -49,7 +49,7 @@ func TestGetSegmentByIDFailureID(t *testing.T) {
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/api/segments/%v", id), nil)
 	if err != nil {
-		t.Fatal("unable to generate request", err)
+		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
@@ -58,7 +58,7 @@ func TestGetSegmentByIDFailureID(t *testing.T) {
 
 	// Check the status code
 	if exp := http.StatusInternalServerError; rec.Code != exp {
-		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
 	}
 }
 
@@ -68,7 +68,7 @@ func TestGetSegmentByIDFailureInput(t *testing.T) {
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/api/segments/%v", id), nil)
 	if err != nil {
-		t.Fatal("unable to generate request", err)
+		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
@@ -77,6 +77,6 @@ func TestGetSegmentByIDFailureInput(t *testing.T) {
 
 	// Check the status code
 	if exp := http.StatusInternalServerError; rec.Code != exp {
-		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
 	}
 }
