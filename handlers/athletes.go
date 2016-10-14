@@ -72,6 +72,7 @@ func GetFriendsByUserIDFromStrava(c *gin.Context) {
 // GetSegmentsByUserIDFromStrava returns a list of segments for a specific user by ID from strava
 func GetSegmentsByUserIDFromStrava(c *gin.Context) {
 	id := c.Param("id")
+	var segments []*strava.SegmentDetailed
 
 	// convert id string to number
 	numID, err := strconv.Atoi(id)
@@ -100,20 +101,47 @@ func GetSegmentsByUserIDFromStrava(c *gin.Context) {
 	}
 
 	// range over activity summary to get activity details
+	// the activity summary does not have segment efforts to view recent segments
 	for _, activitySummary := range activities {
-		log.WithField("activity summary", activitySummary).Info("activity summary")
+		log.WithFields(map[string]interface{}{
+			"NAME": activitySummary.Name,
+			"ID":   activitySummary.Id,
+		}).Info("activity summary")
 
 		// request activity detail from strava to obtain segments
 		activityDetail, err := strava.NewActivitiesService(client).Get(activitySummary.Id).Do()
 		if err != nil {
-			log.WithField("activity detail", activityDetail).Error("unable to retrieve activity detail")
-			c.JSON(500, "Unable to retrieve activity detail")
+			log.WithFields(map[string]interface{}{
+				"NAME": activityDetail.Name,
+				"ID":   activityDetail.Id,
+			}).Error("unable to retrieve activity detail")
+			c.JSON(500, map[string]interface{}{
+				"error":    "Unable to retrieve activity detail",
+				"activity": activityDetail,
+			})
 			return
 		}
-		log.WithField("activity detail", activityDetail).Info("activity detail")
 
-		// range over activity detail to obtain segment efforts
+		// range over segment effors from the activity detail
+		// to obtain segment details to cache
+		for _, effort := range activityDetail.SegmentEfforts {
+			log.WithField("SEGMENT", effort.Name).Info("segment effort from activity detail")
+			segmentDetail, err := strava.NewSegmentsService(client).Get(effort.Segment.Id).Do()
+			if err != nil {
+				log.WithFields(map[string]interface{}{
+					"NAME": effort.Name,
+					"ID":   effort.Id,
+				}).Error("unable to retrieve activity detail")
+				c.JSON(500, map[string]interface{}{
+					"error":   "Unable to retrieve activity detail",
+					"segment": effort,
+				})
+				return
+			}
+			log.WithField("SEGMENT DETAIL", segmentDetail).Info("retrieved segment detail from strava")
+			segments = append(segments, segmentDetail)
+		}
 	}
-
-	c.JSON(200, activities)
+	log.Infof("Retrieved segments:\n %v", segments)
+	c.JSON(200, segments)
 }

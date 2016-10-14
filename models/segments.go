@@ -40,6 +40,9 @@ func GetSegmentByID(id int) (*Segment, error) {
 		return nil, err
 	}
 
-	log.WithField("Segment", &s).Info("Segment returned from MongoDB")
+	log.WithFields(map[string]interface{}{
+			"NAME": s.Name,
+			"ID":   s.ID,
+		}).Info("Segment returned from MongoDB")
 	return &s, nil
 }
