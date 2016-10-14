@@ -20,7 +20,7 @@ func TestGetChallengeByIDSuccess(t *testing.T) {
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/api/challenges/%v", id), nil)
 	if err != nil {
-		t.Fatal("unable to generate request", err)
+		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
@@ -29,19 +29,19 @@ func TestGetChallengeByIDSuccess(t *testing.T) {
 
 	// Check the status code
 	if exp := http.StatusOK; rec.Code != exp {
-		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
 	}
 
 	// Unmarshal and check the response body
 	var c models.Challenge
 	if err := json.NewDecoder(rec.Body).Decode(&c); err != nil {
-		t.Fatalf("unable to decode response: %s", err)
+		t.Errorf("unable to decode response: %s", err)
 	}
 
 	log.WithField("Challenge ID", c.ID).Info("User returned from MongoDB")
 
 	if c.ID != bson.ObjectIdHex(id) {
-		t.Fatalf("unexpected user")
+		t.Errorf("unexpected user")
 	}
 }
 
@@ -51,7 +51,7 @@ func TestGetChallengeByIDFailureID(t *testing.T) {
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/api/challenges/%v", id), nil)
 	if err != nil {
-		t.Fatal("unable to generate request", err)
+		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
@@ -60,7 +60,7 @@ func TestGetChallengeByIDFailureID(t *testing.T) {
 
 	// Check the status code
 	if exp := http.StatusInternalServerError; rec.Code != exp {
-		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
 	}
 }
 
@@ -70,7 +70,7 @@ func TestGetChallengeByIDFailureString(t *testing.T) {
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/api/challenges/%v", id), nil)
 	if err != nil {
-		t.Fatal("unable to generate request", err)
+		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
@@ -79,6 +79,6 @@ func TestGetChallengeByIDFailureString(t *testing.T) {
 
 	// Check the status code
 	if exp := http.StatusInternalServerError; rec.Code != exp {
-		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
 	}
 }

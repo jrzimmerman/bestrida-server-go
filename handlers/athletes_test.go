@@ -18,7 +18,7 @@ func TestGetAthleteByIDFromStravaSuccess(t *testing.T) {
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v", id), nil)
 	if err != nil {
-		t.Fatal("unable to generate request", err)
+		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
@@ -27,19 +27,110 @@ func TestGetAthleteByIDFromStravaSuccess(t *testing.T) {
 
 	// Check the status code
 	if exp := http.StatusOK; rec.Code != exp {
-		t.Fatalf("expected status code %v, got: %v", exp, rec.Code)
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
 	}
 
 	// Unmarshal and check the response body
 	var a *strava.AthleteDetailed
 	if err := json.NewDecoder(rec.Body).Decode(&a); err != nil {
-		t.Fatalf("unable to decode response: %s", err)
+		t.Errorf("unable to decode response: %s", err)
 	}
 
-	log.WithField("Athlete ID", a.Id).Info("Athlete returned from MongoDB")
+	log.WithField("Athlete ID", a.Id).Info("Athlete returned from Strava")
 
 	if a.Id != int64(id) {
-		t.Fatalf("unexpected athlete")
+		t.Errorf("unexpected athlete")
+	}
+}
+
+func TestGetAthleteByIDFromStravaFailureURL(t *testing.T) {
+	id := "fred"
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v", id), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
 	}
 
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; rec.Code != exp {
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	}
+}
+
+func TestGetAthleteByIDFromStravaFailureID(t *testing.T) {
+	id := 0
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v", id), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; rec.Code != exp {
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	}
+}
+
+func TestGetFriendsByUserIDFromStrava(t *testing.T) {
+	id := 1027935
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/friends", id), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusOK; rec.Code != exp {
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	}
+
+	// Unmarshal and check the response body
+	var as *[]strava.AthleteSummary
+	if err := json.NewDecoder(rec.Body).Decode(&as); err != nil {
+		t.Errorf("unable to decode response: %s", err)
+	}
+
+	log.Info("Athlete friends returned from Strava")
+}
+
+func TestGetSegmentsByUserIDFromStrava(t *testing.T) {
+	id := 1027935
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/segments", id), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusOK; rec.Code != exp {
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	}
+
+	// Unmarshal and check the response body
+	var ss *[]strava.SegmentSummary
+	if err := json.NewDecoder(rec.Body).Decode(&ss); err != nil {
+		t.Errorf("unable to decode response: %s", err)
+	}
+
+	log.Info("Athlete segments returned from Strava")
 }
