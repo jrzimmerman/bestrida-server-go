@@ -6,6 +6,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// TestGetChallengeByIDSuccess tests for a successfully found ObjectID
 func TestGetChallengeByIDSuccess(t *testing.T) {
 	id := bson.ObjectIdHex("57be4f7ef7fb96130084f0b2")
 
@@ -19,6 +20,7 @@ func TestGetChallengeByIDSuccess(t *testing.T) {
 	}
 }
 
+// TestGetChallengeByIDFailure tests that an error is returned when an ObjectID is not found
 func TestGetChallengeByIDFailure(t *testing.T) {
 	id := bson.ObjectIdHex("000000000000000000000000")
 
