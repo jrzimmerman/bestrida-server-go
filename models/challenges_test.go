@@ -30,7 +30,7 @@ func TestGetChallengeByIDFailure(t *testing.T) {
 	}
 }
 
-func TestCreateChallenge(t *testing.T) {
+func TestCreateChallengeSuccess(t *testing.T) {
 	id := bson.NewObjectId()
 	c := Challenge{
 		ID: id,
@@ -39,4 +39,13 @@ func TestCreateChallenge(t *testing.T) {
 		t.Fatalf("Error creating a new test challenge:\n %v", err)
 	}
 	defer RemoveChallenge(id)
+}
+
+func TestCreateChallengeFailure(t *testing.T) {
+	c := Challenge{
+		ID: "fred",
+	}
+	if err := CreateChallenge(c); err == nil {
+		t.Error("Did not handle error creating a new test challenge")
+	}
 }
