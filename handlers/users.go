@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/gin-gonic/gin"
+	"gopkg.in/gin-gonic/gin.v1"
 
 	"github.com/jrzimmerman/bestrida-server-go/models"
 )

@@ -4,9 +4,9 @@ import (
 	"strconv"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/gin-gonic/gin"
 	"github.com/jrzimmerman/bestrida-server-go/models"
 	strava "github.com/strava/go.strava"
+	"gopkg.in/gin-gonic/gin.v1"
 )
 
 // GetAthleteByIDFromStrava returns the strava athlete with the specified ID
