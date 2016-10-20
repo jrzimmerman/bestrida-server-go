@@ -29,3 +29,14 @@ func TestGetChallengeByIDFailure(t *testing.T) {
 		t.Errorf("Unable to throw error for ID:\n %v", err)
 	}
 }
+
+func TestCreateChallenge(t *testing.T) {
+	id := bson.NewObjectId()
+	c := Challenge{
+		ID: id,
+	}
+	if err := CreateChallenge(c); err != nil {
+		t.Fatalf("Error creating a new test challenge:\n %v", err)
+	}
+	defer RemoveChallenge(id)
+}
