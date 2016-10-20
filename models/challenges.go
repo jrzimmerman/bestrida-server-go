@@ -53,6 +53,7 @@ func GetChallengeByID(id bson.ObjectId) (*Challenge, error) {
 func CreateChallenge(c Challenge) error {
 	if err := session.DB("heroku_zgxbr4j2").C("challenges").Insert(c); err != nil {
 		log.Errorf("Unable to create a new challenge:\n %v", err)
+		return err
 	}
 	log.Printf("Challenge successfully created")
 	return nil
