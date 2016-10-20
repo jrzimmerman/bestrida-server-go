@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"gopkg.in/gin-gonic/gin.v1"
 )
 
 // API initializes routes with Gin

@@ -1,6 +1,6 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import "gopkg.in/gin-gonic/gin.v1"
 
 // CORS providing support for Cross-Origin Resource Sharing.
 func CORS() gin.HandlerFunc {

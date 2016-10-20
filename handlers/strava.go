@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/gin-gonic/gin"
 	strava "github.com/strava/go.strava"
+	"gopkg.in/gin-gonic/gin.v1"
 )
 
 var authenticator *strava.OAuthAuthenticator
