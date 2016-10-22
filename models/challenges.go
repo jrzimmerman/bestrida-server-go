@@ -49,7 +49,7 @@ func GetChallengeByID(id bson.ObjectId) (*Challenge, error) {
 	return &c, nil
 }
 
-// CreateChallenge creates a new challenge
+// CreateChallenge creates a new challenge in MongoDB
 func CreateChallenge(c Challenge) error {
 	if err := session.DB("heroku_zgxbr4j2").C("challenges").Insert(c); err != nil {
 		log.Errorf("Unable to create a new challenge:\n %v", err)
@@ -59,7 +59,7 @@ func CreateChallenge(c Challenge) error {
 	return nil
 }
 
-// RemoveChallenge removes a challenge
+// RemoveChallenge removes a challenge from MongoDB
 func RemoveChallenge(id bson.ObjectId) error {
 	if err := session.DB("heroku_zgxbr4j2").C("challenges").Remove(bson.M{"_id": id}); err != nil {
 		log.WithField("ID", id).Error("Unable to find challenge with id in database")
