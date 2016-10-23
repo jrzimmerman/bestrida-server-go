@@ -36,7 +36,7 @@ func init() {
 func getEnvString(env string) string {
 	str, ok := os.LookupEnv(env)
 	if !ok {
-		log.WithField("env", env).Fatal("Missing required environment variable")
+		log.WithField("ENV", env).Fatal("Missing required environment variable")
 	}
 	return str
 }
