@@ -2,6 +2,7 @@ package models
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -27,7 +28,7 @@ type UserSegment struct {
 
 // User struct handles the MongoDB schema for a user
 type User struct {
-	ID        int           `bson:"_id" json:"id"`
+	ID        int           `bson:"_id" json:"_id"`
 	FirstName string        `bson:"firstName" json:"firstName"`
 	LastName  string        `bson:"lastName" json:"lastName"`
 	FullName  string        `bson:"fullName" json:"fullName"`
@@ -50,4 +51,22 @@ func GetUserByID(id int) (*User, error) {
 	}
 
 	return &u, nil
+}
+
+// ModifySegmentCount will modify a segment count by the count param for a specific user
+func (u User) ModifySegmentCount(segmentID int, count int) (*mgo.ChangeInfo, error) {
+
+	for i := range u.Segments {
+		if u.Segments[i].ID == segmentID {
+			u.Segments[i].Count = u.Segments[i].Count + count
+			break
+		}
+	}
+
+	info, err := session.DB("heroku_zgxbr4j2").C("users").UpsertId(u.ID, &u)
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
 }
