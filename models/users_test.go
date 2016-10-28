@@ -24,7 +24,7 @@ func TestGetUserByIDFailure(t *testing.T) {
 	}
 }
 
-func TestModifySegmentCount(t *testing.T) {
+func TestModifySegmentCountSuccess(t *testing.T) {
 	// id for specific user
 	id := 1027935
 
@@ -45,7 +45,9 @@ func TestModifySegmentCount(t *testing.T) {
 	}
 
 	// modify the segment count for a users segment array by 1
-	user.ModifySegmentCount(segmentID, 1)
+	if err := user.ModifySegmentCount(segmentID, 1); err != nil {
+		t.Errorf("Unable to modify segment count:\n %v", err)
+	}
 
 	var modifiedSegmentCount int
 	for i := range user.Segments {
@@ -60,7 +62,9 @@ func TestModifySegmentCount(t *testing.T) {
 	}
 
 	// clean up users segment count after test
-	user.ModifySegmentCount(segmentID, -1)
+	if err := user.ModifySegmentCount(segmentID, -1); err != nil {
+		t.Errorf("Unable to modify segment count:\n %v", err)
+	}
 
 	var cleanedSegmentCount int
 	for i := range user.Segments {
@@ -72,5 +76,15 @@ func TestModifySegmentCount(t *testing.T) {
 
 	if cleanedSegmentCount != userSegmentCount {
 		t.Errorf("Expected Cleaned User Segments to be %v, but received %v instead", userSegmentCount, cleanedSegmentCount)
+	}
+}
+
+func TestModifySegmentCountFailure(t *testing.T) {
+	u := User{}
+	segmentID := 10599051
+
+	if err := u.ModifySegmentCount(segmentID, 1); err == nil {
+		t.Errorf("Unable to catch modify segment count error.")
+		return
 	}
 }

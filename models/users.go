@@ -2,7 +2,6 @@ package models
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -54,7 +53,7 @@ func GetUserByID(id int) (*User, error) {
 }
 
 // ModifySegmentCount will modify a segment count by the count param for a specific user
-func (u User) ModifySegmentCount(segmentID int, count int) (*mgo.ChangeInfo, error) {
+func (u User) ModifySegmentCount(segmentID int, count int) error {
 
 	for i := range u.Segments {
 		if u.Segments[i].ID == segmentID {
@@ -63,10 +62,9 @@ func (u User) ModifySegmentCount(segmentID int, count int) (*mgo.ChangeInfo, err
 		}
 	}
 
-	info, err := session.DB("heroku_zgxbr4j2").C("users").UpsertId(u.ID, &u)
-	if err != nil {
-		return nil, err
+	if err := session.DB("heroku_zgxbr4j2").C("users").UpdateId(u.ID, &u); err != nil {
+		return err
 	}
 
-	return info, nil
+	return nil
 }
