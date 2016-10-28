@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	log "github.com/Sirupsen/logrus"
 	strava "github.com/strava/go.strava"
@@ -10,11 +11,17 @@ import (
 )
 
 var authenticator *strava.OAuthAuthenticator
+var clientID = getEnvString("STRAVA_CLIENT_ID")
+var clientSecret = getEnvString("STRAVA_CLIENT_SECRET")
 
 // StravaAuth will render a request to authorize strava user with Bestrida
 func StravaAuth(c *gin.Context) {
+
 	// TODO: send auth request to Strava
-	c.JSON(200, "strava auth")
+	c.JSON(200, map[string]interface{}{
+		"ID":     clientID,
+		"SECRET": clientSecret,
+	})
 }
 
 func oAuthSuccess(auth *strava.AuthorizationResponse, w http.ResponseWriter, r *http.Request) {
@@ -44,4 +51,12 @@ func oAuthFailure(err error, w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.WithError(err).Error("Unknown Error Authorizing")
 	}
+}
+
+func getEnvString(env string) string {
+	str, ok := os.LookupEnv(env)
+	if !ok {
+		log.WithField("ENV", env).Fatal("Missing required environment variable")
+	}
+	return str
 }
