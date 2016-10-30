@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetUserByIDSuccess(t *testing.T) {
-	id := 1027935
+	id := 17198619
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/api/users/%v", id), nil)

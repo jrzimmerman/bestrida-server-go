@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetAthleteByIDFromStravaSuccess(t *testing.T) {
-	id := 1027935
+	id := 17198619
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v", id), nil)
@@ -82,7 +82,7 @@ func TestGetAthleteByIDFromStravaFailureID(t *testing.T) {
 }
 
 func TestGetFriendsByUserIDFromStrava(t *testing.T) {
-	id := 1027935
+	id := 17198619
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/friends", id), nil)
@@ -109,7 +109,7 @@ func TestGetFriendsByUserIDFromStrava(t *testing.T) {
 }
 
 func TestGetSegmentsByUserIDFromStrava(t *testing.T) {
-	id := 1027935
+	id := 17198619
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/segments", id), nil)
