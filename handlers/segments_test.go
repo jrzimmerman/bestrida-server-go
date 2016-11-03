@@ -10,6 +10,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/handlers"
 	"github.com/jrzimmerman/bestrida-server-go/models"
+	strava "github.com/strava/go.strava"
 )
 
 func TestGetSegmentByIDSuccess(t *testing.T) {
@@ -67,6 +68,76 @@ func TestGetSegmentByIDFailureInput(t *testing.T) {
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("/api/segments/%v", id), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; rec.Code != exp {
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	}
+}
+
+func TestGetSegmentByIDFromStravaSuccess(t *testing.T) {
+	// Hawk Hill segment ID
+	var id int64 = 229781
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/segments/%v", id), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusOK; rec.Code != exp {
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	}
+
+	// Unmarshal and check the response body
+	var s strava.SegmentDetailed
+	if err := json.NewDecoder(rec.Body).Decode(&s); err != nil {
+		t.Errorf("unable to decode response: %s", err)
+	}
+
+	log.WithField("Segment ID", s.Id).Info("Segment returned from MongoDB")
+
+	if s.Id != id {
+		t.Errorf("Expected segment ID %v, got %v instead", id, s.Id)
+	}
+}
+
+func TestGetSegmentByIDFromStravaFailureID(t *testing.T) {
+	id := 0
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/segments/%v", id), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; rec.Code != exp {
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	}
+}
+
+func TestGetSegmentByIDFromStravaFailureInput(t *testing.T) {
+	id := "test"
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/segments/%v", id), nil)
 	if err != nil {
 		t.Error("unable to generate request", err)
 	}
