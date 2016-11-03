@@ -12,6 +12,7 @@ import (
 var authenticator *strava.OAuthAuthenticator
 var clientID = getEnvString("STRAVA_CLIENT_ID")
 var clientSecret = getEnvString("STRAVA_CLIENT_SECRET")
+var accessToken = getEnvString("STRAVA_ACCESS_TOKEN")
 var port = getEnvString("PORT")
 
 // API initializes routes with Gin
@@ -24,6 +25,7 @@ func API() http.Handler {
 		s.GET("athletes/:id", GetAthleteByIDFromStrava)
 		s.GET("athletes/:id/friends", GetFriendsByUserIDFromStrava)
 		s.GET("athletes/:id/segments", GetSegmentsByUserIDFromStrava)
+		s.GET("segments/:id", GetSegmentByIDFromStrava)
 	}
 
 	api := r.Group("/api")
