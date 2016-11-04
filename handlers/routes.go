@@ -25,6 +25,7 @@ func API() http.Handler {
 		s.GET("athletes/:id", GetAthleteByIDFromStrava)
 		s.GET("athletes/:id/friends", GetFriendsByUserIDFromStrava)
 		s.GET("athletes/:id/segments", GetSegmentsByUserIDFromStrava)
+		s.GET("athletes/:id/segments/:segmentID/efforts", GetEffortsBySegmentIDFromStrava)
 		s.GET("segments/:id", GetSegmentByIDFromStrava)
 	}
 

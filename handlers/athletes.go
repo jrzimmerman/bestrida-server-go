@@ -122,7 +122,7 @@ func GetSegmentsByUserIDFromStrava(c *gin.Context) {
 			return
 		}
 
-		// range over segment effors from the activity detail
+		// range over segment efforts from the activity detail
 		// to obtain segment details to cache
 		for _, effort := range activityDetail.SegmentEfforts {
 			log.WithField("SEGMENT", effort.Name).Info("segment effort from activity detail")
