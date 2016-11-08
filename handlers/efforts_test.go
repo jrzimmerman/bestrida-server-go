@@ -7,16 +7,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/handlers"
 	strava "github.com/strava/go.strava"
 )
 
 func TestGetEffortsBySegmentIDFromStravaSuccess(t *testing.T) {
 	id := 1027935
+	segmentID := 9719730
 
 	// Create the http request
-	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v", id), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/segments/%v/efforts", id, segmentID), nil)
 	if err != nil {
 		t.Error("unable to generate request", err)
 	}
@@ -31,14 +31,12 @@ func TestGetEffortsBySegmentIDFromStravaSuccess(t *testing.T) {
 	}
 
 	// Unmarshal and check the response body
-	var a *strava.AthleteDetailed
-	if err := json.NewDecoder(rec.Body).Decode(&a); err != nil {
+	var efforts []*strava.EffortSummary
+	if err := json.NewDecoder(rec.Body).Decode(&efforts); err != nil {
 		t.Errorf("unable to decode response: %s", err)
 	}
 
-	log.WithField("Athlete ID", a.Id).Info("Athlete returned from Strava")
-
-	if a.Id != int64(id) {
-		t.Errorf("unexpected athlete")
+	if len(efforts) == 0 {
+		t.Errorf("no efforts returned")
 	}
 }

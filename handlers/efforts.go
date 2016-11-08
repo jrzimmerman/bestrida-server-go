@@ -39,7 +39,7 @@ func GetEffortsBySegmentIDFromStrava(c *gin.Context) {
 	// use our access token to grab generic segment info
 	client := strava.NewClient(user.Token)
 
-	log.Infof("Fetching segment %v info...\n", numSegmentID)
+	log.Infof("Fetching segment %v effort info...\n", numSegmentID)
 	efforts, err := strava.NewSegmentsService(client).ListEfforts(numSegmentID).AthleteId(userID).Do()
 	if err != nil {
 		c.JSON(500, "Unable to retrieve segment efforts info")
