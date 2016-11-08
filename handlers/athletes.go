@@ -142,6 +142,5 @@ func GetSegmentsByUserIDFromStrava(c *gin.Context) {
 			segments = append(segments, segmentDetail)
 		}
 	}
-	log.Infof("Retrieved segments:\n %v", segments)
 	c.JSON(200, segments)
 }
