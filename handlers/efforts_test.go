@@ -40,3 +40,43 @@ func TestGetEffortsBySegmentIDFromStravaSuccess(t *testing.T) {
 		t.Errorf("no efforts returned")
 	}
 }
+
+func TestGetEffortsBySegmentIDFromStravaFailureUserID(t *testing.T) {
+	id := 0
+	segmentID := 9719730
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/segments/%v/efforts", id, segmentID), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; rec.Code != exp {
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	}
+}
+
+func TestGetEffortsBySegmentIDFromStravaFailureSegmentID(t *testing.T) {
+	id := 1027935
+	segmentID := 0
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/segments/%v/efforts", id, segmentID), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	rec := httptest.NewRecorder()
+	handlers.API().ServeHTTP(rec, req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; rec.Code != exp {
+		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	}
+}
