@@ -30,6 +30,7 @@ func GetAthleteByIDFromStrava(c *gin.Context) {
 	client := strava.NewClient(user.Token)
 
 	log.Info("Fetching athlete info...\n")
+	// retrieve a list of users segments from Strava API
 	athlete, err := strava.NewCurrentAthleteService(client).Get().Do()
 	if err != nil {
 		c.JSON(500, "Unable to retrieve athlete info")
@@ -60,6 +61,7 @@ func GetFriendsByUserIDFromStrava(c *gin.Context) {
 	client := strava.NewClient(user.Token)
 
 	log.Info("Fetching athlete friends info...\n")
+	// retrieve a list of users friends from Strava API
 	friends, err := strava.NewCurrentAthleteService(client).ListFriends().Do()
 	if err != nil {
 		c.JSON(500, "Unable to retrieve athlete friends")
