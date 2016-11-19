@@ -173,6 +173,7 @@ func TestGetSegmentsByUserIDFromStravaSuccess(t *testing.T) {
 	log.Info("Athlete segments returned from Strava")
 }
 
+// TestGetSegmentsByUserIDFromStravaFailureURL will test retrieving a user from strava with a bad athlete ID
 func TestGetSegmentsByUserIDFromStravaFailureURL(t *testing.T) {
 	id := "fred"
 
@@ -192,6 +193,7 @@ func TestGetSegmentsByUserIDFromStravaFailureURL(t *testing.T) {
 	}
 }
 
+// TestGetSegmentsByUserIDFromStravaFailureID will test retrieving a user from strava with a bad athlete ID
 func TestGetSegmentsByUserIDFromStravaFailureID(t *testing.T) {
 	id := 0
 
