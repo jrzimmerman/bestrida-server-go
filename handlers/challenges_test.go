@@ -14,6 +14,7 @@ import (
 	"github.com/jrzimmerman/bestrida-server-go/models"
 )
 
+// TestGetChallengeByIDSuccess tests to successfully get a challenge by ID from the database
 func TestGetChallengeByIDSuccess(t *testing.T) {
 	id := "57be4f7ef7fb96130084f0b2"
 

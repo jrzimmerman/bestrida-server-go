@@ -12,6 +12,7 @@ import (
 	strava "github.com/strava/go.strava"
 )
 
+// TestGetAthleteByIDFromStravaSuccess retrieves the athlete by ID from Strava
 func TestGetAthleteByIDFromStravaSuccess(t *testing.T) {
 	id := 1027935
 
