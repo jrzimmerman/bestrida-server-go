@@ -16,27 +16,31 @@
 		},
 		{
 			"checksumSHA1": "UsILDoIB2S7ra+w2fMdb85mX3HM=",
+			"origin": "gopkg.in/gin-gonic/gin.v1/vendor/github.com/gin-gonic/gin/binding",
 			"path": "github.com/gin-gonic/gin/binding",
-			"revision": "542be2fe77724f800fcab7eb6c01a4e597fb8506",
-			"revisionTime": "2016-04-15T11:10:04Z"
+			"revision": "2dae550eb5392006a4582ce9c90016a9b5a74e8b",
+			"revisionTime": "2016-10-12T12:13:04Z"
 		},
 		{
 			"checksumSHA1": "PHv9FNb7YavJWtAHcY6ZgXmkmHs=",
+			"origin": "gopkg.in/gin-gonic/gin.v1/vendor/github.com/gin-gonic/gin/render",
 			"path": "github.com/gin-gonic/gin/render",
-			"revision": "542be2fe77724f800fcab7eb6c01a4e597fb8506",
-			"revisionTime": "2016-04-15T11:10:04Z"
+			"revision": "2dae550eb5392006a4582ce9c90016a9b5a74e8b",
+			"revisionTime": "2016-10-12T12:13:04Z"
 		},
 		{
-			"checksumSHA1": "csqyte7Tj4qffaZ0OAZgO6fstsY=",
+			"checksumSHA1": "SVXOQdpDBh0ihdZ5aIflgdA+Rpw=",
+			"origin": "gopkg.in/gin-gonic/gin.v1/vendor/github.com/golang/protobuf/proto",
 			"path": "github.com/golang/protobuf/proto",
-			"revision": "cd85f19845cc96cc6e5269c894d8cd3c67e9ed83",
-			"revisionTime": "2016-05-19T19:50:37Z"
+			"revision": "2dae550eb5392006a4582ce9c90016a9b5a74e8b",
+			"revisionTime": "2016-10-12T12:13:04Z"
 		},
 		{
 			"checksumSHA1": "b0T0Hzd+zYk+OCDTFMps+jwa/nY=",
+			"origin": "gopkg.in/gin-gonic/gin.v1/vendor/github.com/manucorporat/sse",
 			"path": "github.com/manucorporat/sse",
-			"revision": "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d",
-			"revisionTime": "2016-01-26T18:01:36Z"
+			"revision": "2dae550eb5392006a4582ce9c90016a9b5a74e8b",
+			"revisionTime": "2016-10-12T12:13:04Z"
 		},
 		{
 			"checksumSHA1": "pAUm2I2E9VRQB7j0CwYh2neM850=",
@@ -46,15 +50,10 @@
 		},
 		{
 			"checksumSHA1": "9jjO5GjLa0XF/nfWihF02RoH4qc=",
+			"origin": "gopkg.in/gin-gonic/gin.v1/vendor/golang.org/x/net/context",
 			"path": "golang.org/x/net/context",
-			"revision": "f09c4662a0bd6bd8943ac7b4931e185df9471da4",
-			"revisionTime": "2016-09-24T00:10:04Z"
-		},
-		{
-			"checksumSHA1": "8fD/im5Kwvy3JgmxulDTambmE8w=",
-			"path": "golang.org/x/sys/unix",
-			"revision": "30de6d19a3bd89a5f38ae4028e23aaa5582648af",
-			"revisionTime": "2016-09-07T05:59:14Z"
+			"revision": "2dae550eb5392006a4582ce9c90016a9b5a74e8b",
+			"revisionTime": "2016-10-12T12:13:04Z"
 		},
 		{
 			"checksumSHA1": "Y9uJ9ucMW48ht6FidAa0QaLub10=",
@@ -63,10 +62,11 @@
 			"revisionTime": "2016-10-12T12:13:04Z"
 		},
 		{
-			"checksumSHA1": "9+TP2NPlTWXoRndq02uwZW26AqI=",
+			"checksumSHA1": "39V1idWER42Lmcmg2Uy40wMzOlo=",
+			"origin": "gopkg.in/gin-gonic/gin.v1/vendor/gopkg.in/go-playground/validator.v8",
 			"path": "gopkg.in/go-playground/validator.v8",
-			"revision": "014792cf3e266caff1e916876be12282b33059e0",
-			"revisionTime": "2016-02-23T20:26:51Z"
+			"revision": "2dae550eb5392006a4582ce9c90016a9b5a74e8b",
+			"revisionTime": "2016-10-12T12:13:04Z"
 		},
 		{
 			"checksumSHA1": "1D8GzeoFGUs5FZOoyC2DpQg8c5Y=",
@@ -99,10 +99,11 @@
 			"revisionTime": "2016-08-18T02:01:20Z"
 		},
 		{
-			"checksumSHA1": "+OgOXBoiQ+X+C2dsAeiOHwBIEH0=",
+			"checksumSHA1": "12GqsW8PiRPnezDDy0v4brZrndM=",
+			"origin": "gopkg.in/gin-gonic/gin.v1/vendor/gopkg.in/yaml.v2",
 			"path": "gopkg.in/yaml.v2",
-			"revision": "a83829b6f1293c91addabc89d0571c246397bbf4",
-			"revisionTime": "2016-03-01T20:40:22Z"
+			"revision": "2dae550eb5392006a4582ce9c90016a9b5a74e8b",
+			"revisionTime": "2016-10-12T12:13:04Z"
 		}
 	],
 	"rootPath": "github.com/jrzimmerman/bestrida-server-go"
