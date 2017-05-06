@@ -1,28 +1,20 @@
 package main
 
 import (
-	"os"
+	"net/http"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/braintree/manners"
 	"github.com/jrzimmerman/bestrida-server-go/handlers"
 	"github.com/jrzimmerman/bestrida-server-go/models"
+	"github.com/jrzimmerman/bestrida-server-go/utils"
 )
 
 func main() {
-	port := getEnvString("PORT")
+	port := utils.GetEnvString("PORT")
 	log.WithField("PORT", port).Info("Listening for http traffic")
 
 	// close DB connection
 	defer models.Close()
 
-	log.Fatal(manners.ListenAndServe(":"+port, handlers.API()))
-}
-
-func getEnvString(env string) string {
-	str, ok := os.LookupEnv(env)
-	if !ok {
-		log.WithField("ENV", env).Fatal("Missing required environment variable")
-	}
-	return str
+	log.Fatal(http.ListenAndServe(":"+port, handlers.API()))
 }

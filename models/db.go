@@ -1,10 +1,10 @@
 package models
 
 import (
-	"os"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/jrzimmerman/bestrida-server-go/utils"
 	"gopkg.in/mgo.v2"
 )
 
@@ -13,10 +13,10 @@ var session *mgo.Session
 
 // Create new MongoDB session on init
 func init() {
-	host := getEnvString("DB_HOST")
-	name := getEnvString("DB_NAME")
-	username := getEnvString("DB_USER")
-	password := getEnvString("DB_PASSWORD")
+	host := utils.GetEnvString("DB_HOST")
+	name := utils.GetEnvString("DB_NAME")
+	username := utils.GetEnvString("DB_USER")
+	password := utils.GetEnvString("DB_PASSWORD")
 
 	// We need this object to establish a session to our MongoDB.
 	dbInfo := &mgo.DialInfo{
@@ -31,14 +31,6 @@ func init() {
 	if err != nil {
 		log.WithError(err).Fatal("Unable to create new session")
 	}
-}
-
-func getEnvString(env string) string {
-	str, ok := os.LookupEnv(env)
-	if !ok {
-		log.WithField("ENV", env).Fatal("Missing required environment variable")
-	}
-	return str
 }
 
 // Close will close the global MongoDB session
