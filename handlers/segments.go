@@ -1,22 +1,26 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/pressly/chi"
 	strava "github.com/strava/go.strava"
-	"gopkg.in/gin-gonic/gin.v1"
 
 	"github.com/jrzimmerman/bestrida-server-go/models"
 )
 
 // GetSegmentByID returns segment by ID from the database
-func GetSegmentByID(c *gin.Context) {
-	id := c.Param("id")
+func GetSegmentByID(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+	defer res.Render()
+
+	id := chi.URLParam(r, "id")
 	numID, err := strconv.Atoi(id)
 	if err != nil {
 		log.WithField("id", numID).Debug("unable to convert ID param")
-		c.JSON(500, err)
+		res.SetResponse(500, err)
 		return
 	}
 
@@ -26,21 +30,24 @@ func GetSegmentByID(c *gin.Context) {
 	segment, err := models.GetSegmentByID(numID)
 	if err != nil {
 		log.WithField("id", numID).Debug("unable to get segment by ID")
-		c.JSON(500, err)
+		res.SetResponse(500, err)
 		return
 	}
 
-	c.JSON(200, segment)
+	res.SetResponse(200, segment)
 }
 
 // GetSegmentByIDFromStrava returns the strava segment with the specified ID
-func GetSegmentByIDFromStrava(c *gin.Context) {
-	id := c.Param("id")
+func GetSegmentByIDFromStrava(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+	defer res.Render()
+
+	id := chi.URLParam(r, "id")
 
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert segment ID param")
-		c.JSON(500, "unable to convert segment ID param")
+		res.SetResponse(500, "unable to convert segment ID param")
 		return
 	}
 
@@ -50,9 +57,9 @@ func GetSegmentByIDFromStrava(c *gin.Context) {
 	log.Infof("Fetching segment %v info...", id)
 	segment, err := strava.NewSegmentsService(client).Get(numID).Do()
 	if err != nil {
-		c.JSON(500, "Unable to retrieve segment info")
+		res.SetResponse(500, "Unable to retrieve segment info")
 		return
 	}
 
-	c.JSON(200, segment)
+	res.SetResponse(200, segment)
 }

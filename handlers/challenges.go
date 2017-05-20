@@ -1,19 +1,24 @@
 package handlers
 
 import (
+	"net/http"
+
 	log "github.com/Sirupsen/logrus"
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/pressly/chi"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/jrzimmerman/bestrida-server-go/models"
 )
 
 // GetChallengeByID returns challenge by ID from the database
-func GetChallengeByID(c *gin.Context) {
-	id := c.Param("id")
+func GetChallengeByID(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+	defer res.Render()
+
+	id := chi.URLParam(r, "id")
 	// validate Challenge ID is a bson Object ID
 	if !bson.IsObjectIdHex(id) {
-		c.JSON(500, "Challenge ID cannot be converted to BSON Object ID")
+		res.SetResponse(500, "Challenge ID cannot be converted to BSON Object ID")
 		return
 	}
 
@@ -26,9 +31,9 @@ func GetChallengeByID(c *gin.Context) {
 
 	if err != nil {
 		log.WithField("ID", id).Debug("unable to get challenge by ID")
-		c.JSON(500, err)
+		res.SetResponse(500, err)
 		return
 	}
 
-	c.JSON(200, challenge)
+	res.SetResponse(200, challenge)
 }

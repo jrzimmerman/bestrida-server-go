@@ -1,29 +1,33 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/models"
+	"github.com/pressly/chi"
 	strava "github.com/strava/go.strava"
-	"gopkg.in/gin-gonic/gin.v1"
 )
 
 // GetAthleteByIDFromStrava returns the strava athlete with the specified ID
-func GetAthleteByIDFromStrava(c *gin.Context) {
-	id := c.Param("id")
+func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+	defer res.Render()
+
+	id := chi.URLParam(r, "id")
 
 	numID, err := strconv.Atoi(id)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
-		c.JSON(500, "unable to convert ID param")
+		res.SetResponse(400, "unable to convert ID param")
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		c.JSON(500, "unable to retrieve user from database")
+		res.SetResponse(500, "unable to retrieve user from database")
 		return
 	}
 
@@ -33,28 +37,31 @@ func GetAthleteByIDFromStrava(c *gin.Context) {
 	// retrieve a list of users segments from Strava API
 	athlete, err := strava.NewCurrentAthleteService(client).Get().Do()
 	if err != nil {
-		c.JSON(500, "Unable to retrieve athlete info")
+		res.SetResponse(500, "Unable to retrieve athlete info")
 		return
 	}
 
-	c.JSON(200, athlete)
+	res.SetResponse(200, athlete)
 }
 
 // GetFriendsByUserIDFromStrava returns a list of friends for a specific user by ID from strava
-func GetFriendsByUserIDFromStrava(c *gin.Context) {
-	id := c.Param("id")
+func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+	defer res.Render()
+
+	id := chi.URLParam(r, "id")
 
 	numID, err := strconv.Atoi(id)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
-		c.JSON(500, "unable to convert ID param")
+		res.SetResponse(500, "unable to convert ID param")
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		c.JSON(500, "unable to retrieve user from database")
+		res.SetResponse(500, "unable to retrieve user from database")
 		return
 	}
 
@@ -64,23 +71,26 @@ func GetFriendsByUserIDFromStrava(c *gin.Context) {
 	// retrieve a list of users friends from Strava API
 	friends, err := strava.NewCurrentAthleteService(client).ListFriends().Do()
 	if err != nil {
-		c.JSON(500, "Unable to retrieve athlete friends")
+		res.SetResponse(500, "Unable to retrieve athlete friends")
 		return
 	}
 
-	c.JSON(200, friends)
+	res.SetResponse(200, friends)
 }
 
 // GetSegmentsByUserIDFromStrava returns a list of segments for a specific user by ID from strava
-func GetSegmentsByUserIDFromStrava(c *gin.Context) {
-	id := c.Param("id")
+func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+	defer res.Render()
+
+	id := chi.URLParam(r, "id")
 	var segments []*strava.SegmentDetailed
 
 	// convert id string to number
 	numID, err := strconv.Atoi(id)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
-		c.JSON(500, "unable to convert ID param")
+		res.SetResponse(500, "unable to convert ID param")
 		return
 	}
 
@@ -88,7 +98,7 @@ func GetSegmentsByUserIDFromStrava(c *gin.Context) {
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		c.JSON(500, "unable to retrieve user from database")
+		res.SetResponse(500, "unable to retrieve user from database")
 		return
 	}
 
@@ -98,7 +108,7 @@ func GetSegmentsByUserIDFromStrava(c *gin.Context) {
 	log.Info("Fetching athlete activity summary info...\n")
 	activities, err := strava.NewCurrentAthleteService(client).ListActivities().Do()
 	if err != nil {
-		c.JSON(500, "Unable to retrieve athlete activities summary")
+		res.SetResponse(500, "Unable to retrieve athlete activities summary")
 		return
 	}
 
@@ -117,7 +127,7 @@ func GetSegmentsByUserIDFromStrava(c *gin.Context) {
 				"NAME": activityDetail.Name,
 				"ID":   activityDetail.Id,
 			}).Error("unable to retrieve activity detail")
-			c.JSON(500, map[string]interface{}{
+			res.SetResponse(500, map[string]interface{}{
 				"error":    "Unable to retrieve activity detail",
 				"activity": activityDetail,
 			})
@@ -134,7 +144,7 @@ func GetSegmentsByUserIDFromStrava(c *gin.Context) {
 					"NAME": effort.Name,
 					"ID":   effort.Id,
 				}).Error("unable to retrieve activity detail")
-				c.JSON(500, map[string]interface{}{
+				res.SetResponse(500, map[string]interface{}{
 					"error":   "Unable to retrieve activity detail",
 					"segment": effort,
 				})
@@ -144,5 +154,5 @@ func GetSegmentsByUserIDFromStrava(c *gin.Context) {
 			segments = append(segments, segmentDetail)
 		}
 	}
-	c.JSON(200, segments)
+	res.SetResponse(200, segments)
 }

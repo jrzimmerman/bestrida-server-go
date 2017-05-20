@@ -1,11 +1,9 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/jrzimmerman/bestrida-server-go/utils"
+	"github.com/pressly/chi"
 	strava "github.com/strava/go.strava"
-	"gopkg.in/gin-gonic/gin.v1"
 )
 
 var authenticator *strava.OAuthAuthenticator
@@ -14,26 +12,50 @@ var clientSecret = utils.GetEnvString("STRAVA_CLIENT_SECRET")
 var accessToken = utils.GetEnvString("STRAVA_ACCESS_TOKEN")
 var port = utils.GetEnvString("PORT")
 
-// API initializes routes with Gin
-func API() http.Handler {
-	r := gin.Default()
-	r.Use(CORS())
-	s := r.Group("/strava")
-	{
-		s.GET("auth", StravaAuth)
-		s.GET("athletes/:id", GetAthleteByIDFromStrava)
-		s.GET("athletes/:id/friends", GetFriendsByUserIDFromStrava)
-		s.GET("athletes/:id/segments", GetSegmentsByUserIDFromStrava)
-		s.GET("athletes/:id/segments/:segmentID/efforts", GetEffortsBySegmentIDFromStrava)
-		s.GET("segments/:id", GetSegmentByIDFromStrava)
-	}
+// API initializes all endpoints
+func API() (mux *chi.Mux) {
+	mux = chi.NewRouter()
+	mux.Use(CORS)
 
-	api := r.Group("/api")
-	{
-		api.GET("users/:id", GetUserByID)
-		api.GET("segments/:id", GetSegmentByID)
-		api.GET("challenges/:id", GetChallengeByID)
-	}
+	mux.Route("/api", func(r chi.Router) {
+		r.Route("/users", func(r chi.Router) {
+			r.Get("/:id", GetUserByID)
+		})
+		r.Route("/segments", func(r chi.Router) {
+			r.Get("/:id", GetSegmentByID)
+		})
+		r.Route("/challenges", func(r chi.Router) {
+			r.Get("/:id", GetChallengeByID)
+		})
+	})
 
-	return r
+	mux.Route("/strava", func(r chi.Router) {
+		r.Route("/auth", func(r chi.Router) {
+			r.Get("/", StravaAuth)
+		})
+		r.Route("/athletes", func(r chi.Router) {
+			r.Route("/:id", func(r chi.Router) {
+				r.Get("/", GetAthleteByIDFromStrava)
+
+				r.Route("/friends", func(r chi.Router) {
+					r.Get("/", GetFriendsByUserIDFromStrava)
+				})
+
+				r.Route("/segments", func(r chi.Router) {
+					r.Get("/", GetSegmentsByUserIDFromStrava)
+					r.Route("/:segmentID", func(r chi.Router) {
+						r.Get("/", GetSegmentByIDFromStrava)
+						r.Route("/efforts", func(r chi.Router) {
+							r.Get("/", GetEffortsBySegmentIDFromStrava)
+						})
+					})
+				})
+			})
+		})
+
+		r.Route("/segments", func(r chi.Router) {
+			r.Get("/:id", GetSegmentByIDFromStrava)
+		})
+	})
+	return mux
 }

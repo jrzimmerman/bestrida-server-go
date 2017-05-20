@@ -1,31 +1,35 @@
 package handlers
 
 import (
+	"net/http"
 	"strconv"
 
 	log "github.com/Sirupsen/logrus"
-	"gopkg.in/gin-gonic/gin.v1"
+	"github.com/pressly/chi"
 
 	"github.com/jrzimmerman/bestrida-server-go/models"
 )
 
 // GetUserByID returns user by ID from the database
-func GetUserByID(c *gin.Context) {
-	id := c.Param("id")
+func GetUserByID(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+	defer res.Render()
+
+	id := chi.URLParam(r, "id")
 
 	numID, err := strconv.Atoi(id)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
-		c.JSON(500, "unable to convert ID param")
+		res.SetResponse(500, "unable to convert ID param")
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to get user by ID")
-		c.JSON(500, "unable to get user by ID")
+		res.SetResponse(500, "unable to get user by ID")
 		return
 	}
 
-	c.JSON(200, user)
+	res.SetResponse(200, user)
 }
