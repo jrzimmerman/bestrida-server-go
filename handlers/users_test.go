@@ -1,82 +1,94 @@
-package handlers_test
+package handlers
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/jrzimmerman/bestrida-server-go/handlers"
-	"github.com/jrzimmerman/bestrida-server-go/models"
+	"github.com/pressly/chi"
 )
 
 func TestGetUserByIDSuccess(t *testing.T) {
-	id := 17198619
+	r := chi.NewRouter()
+	r.Get("/:id", GetUserByID)
+	server := httptest.NewServer(r)
+
+	id := 1027935
 
 	// Create the http request
-	req, err := http.NewRequest("GET", fmt.Sprintf("/api/users/%v", id), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id), server.URL), nil)
 	if err != nil {
 		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
-	rec := httptest.NewRecorder()
-	handlers.API().ServeHTTP(rec, req)
+	resp, err := http.DefaultClient.Do(req)
 
 	// Check the status code
-	if exp := http.StatusOK; rec.Code != exp {
-		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	if exp := http.StatusOK; resp.StatusCode != exp {
+		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
 	}
 
 	// Unmarshal and check the response body
-	var u models.User
-	if err := json.NewDecoder(rec.Body).Decode(&u); err != nil {
+	var result Response
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		t.Errorf("unable to decode response: %s", err)
 	}
 
-	log.WithField("User ID", u.ID).Info("User returned from MongoDB")
+	user := result.Content.(map[string]interface{})
+	log.WithField("User ID", user["id"]).Info("User returned from DB")
 
-	if u.ID != id {
+	userID := user["id"].(float64)
+
+	if int(userID) != id {
 		t.Errorf("unexpected user")
 	}
 }
 
 func TestGetUserByIDFailureID(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/:id", GetUserByID)
+	server := httptest.NewServer(r)
+
 	id := 0
 
 	// Create the http request
-	req, err := http.NewRequest("GET", fmt.Sprintf("/api/users/%v", id), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id), server.URL), nil)
 	if err != nil {
 		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
-	rec := httptest.NewRecorder()
-	handlers.API().ServeHTTP(rec, req)
+	resp, err := http.DefaultClient.Do(req)
 
 	// Check the status code
-	if exp := http.StatusInternalServerError; rec.Code != exp {
-		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	if exp := http.StatusInternalServerError; resp.StatusCode != exp {
+		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
 	}
 }
 
 func TestGetUserByIDFailureName(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/:id", GetUserByID)
+	server := httptest.NewServer(r)
+
 	id := "fred"
 
 	// Create the http request
-	req, err := http.NewRequest("GET", fmt.Sprintf("/api/users/%v", id), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+id, server.URL), nil)
 	if err != nil {
 		t.Error("unable to generate request", err)
 	}
 
 	// Send the request to the API
-	rec := httptest.NewRecorder()
-	handlers.API().ServeHTTP(rec, req)
+	resp, err := http.DefaultClient.Do(req)
 
 	// Check the status code
-	if exp := http.StatusInternalServerError; rec.Code != exp {
-		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
+	if exp := http.StatusInternalServerError; resp.StatusCode != exp {
+		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
 	}
 }

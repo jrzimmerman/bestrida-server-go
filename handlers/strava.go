@@ -29,7 +29,7 @@ func StravaAuth(w http.ResponseWriter, r *http.Request) {
 	http.HandleFunc(path, authenticator.HandlerFunc(oAuthSuccess, oAuthFailure))
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
+func AuthHandler(w http.ResponseWriter, r *http.Request) {
 	// you should make this a template in your real application
 	fmt.Fprintf(w, `<a href="%s">`, authenticator.AuthorizationURL("state1", strava.Permissions.Public, true))
 	fmt.Fprint(w, `<img src="http://strava.github.io/api/images/ConnectWithStrava.png" />`)

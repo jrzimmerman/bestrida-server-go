@@ -27,35 +27,36 @@ func API() (mux *chi.Mux) {
 		r.Route("/challenges", func(r chi.Router) {
 			r.Get("/:id", GetChallengeByID)
 		})
-	})
 
-	mux.Route("/strava", func(r chi.Router) {
-		r.Route("/auth", func(r chi.Router) {
-			r.Get("/", StravaAuth)
-		})
-		r.Route("/athletes", func(r chi.Router) {
-			r.Route("/:id", func(r chi.Router) {
-				r.Get("/", GetAthleteByIDFromStrava)
+		r.Route("/strava", func(r chi.Router) {
+			r.Route("/auth", func(r chi.Router) {
+				r.Get("/", AuthHandler)
+			})
+			r.Route("/athletes", func(r chi.Router) {
+				r.Route("/:id", func(r chi.Router) {
+					r.Get("/", GetAthleteByIDFromStrava)
 
-				r.Route("/friends", func(r chi.Router) {
-					r.Get("/", GetFriendsByUserIDFromStrava)
-				})
+					r.Route("/friends", func(r chi.Router) {
+						r.Get("/", GetFriendsByUserIDFromStrava)
+					})
 
-				r.Route("/segments", func(r chi.Router) {
-					r.Get("/", GetSegmentsByUserIDFromStrava)
-					r.Route("/:segmentID", func(r chi.Router) {
-						r.Get("/", GetSegmentByIDFromStrava)
-						r.Route("/efforts", func(r chi.Router) {
-							r.Get("/", GetEffortsBySegmentIDFromStrava)
+					r.Route("/segments", func(r chi.Router) {
+						r.Get("/", GetSegmentsByUserIDFromStrava)
+						r.Route("/:segmentID", func(r chi.Router) {
+							r.Get("/", GetSegmentByIDFromStrava)
+							r.Route("/efforts", func(r chi.Router) {
+								r.Get("/", GetEffortsBySegmentIDFromStrava)
+							})
 						})
 					})
 				})
 			})
-		})
 
-		r.Route("/segments", func(r chi.Router) {
-			r.Get("/:id", GetSegmentByIDFromStrava)
+			r.Route("/segments", func(r chi.Router) {
+				r.Get("/:id", GetSegmentByIDFromStrava)
+			})
 		})
 	})
+
 	return mux
 }
