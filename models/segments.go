@@ -35,14 +35,14 @@ type Segment struct {
 func GetSegmentByID(id int) (*Segment, error) {
 	var s Segment
 
-	if err := session.DB("heroku_zgxbr4j2").C("segments").Find(bson.M{"_id": id}).One(&s); err != nil {
+	if err := session.DB(name).C("segments").Find(bson.M{"_id": id}).One(&s); err != nil {
 		log.WithField("ID", id).Error("Unable to find segment with id")
 		return nil, err
 	}
 
 	log.WithFields(map[string]interface{}{
-			"NAME": s.Name,
-			"ID":   s.ID,
-		}).Info("Segment returned from MongoDB")
+		"NAME": s.Name,
+		"ID":   s.ID,
+	}).Info("Segment returned from DB")
 	return &s, nil
 }

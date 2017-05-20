@@ -10,14 +10,13 @@ import (
 
 // global session to be used in models
 var session *mgo.Session
+var host = utils.GetEnvString("DB_HOST")
+var name = utils.GetEnvString("DB_NAME")
+var username = utils.GetEnvString("DB_USER")
+var password = utils.GetEnvString("DB_PASSWORD")
 
 // Create new MongoDB session on init
 func init() {
-	host := utils.GetEnvString("DB_HOST")
-	name := utils.GetEnvString("DB_NAME")
-	username := utils.GetEnvString("DB_USER")
-	password := utils.GetEnvString("DB_PASSWORD")
-
 	// We need this object to establish a session to our MongoDB.
 	dbInfo := &mgo.DialInfo{
 		Addrs:    []string{host},
