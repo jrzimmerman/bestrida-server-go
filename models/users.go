@@ -20,7 +20,7 @@ type Friend struct {
 
 // UserSegment struct handles the MongoDB schema for each users segments
 type UserSegment struct {
-	ID    string `bson:"_id" json:"id"`
+	ID    int    `bson:"_id" json:"id"`
 	Name  string `bson:"name" json:"name"`
 	Count int    `bson:"count" json:"count"`
 }
@@ -53,7 +53,7 @@ func GetUserByID(id int) (*User, error) {
 }
 
 // ModifySegmentCount will modify a segment count by the count param for a specific user
-func (u User) ModifySegmentCount(segmentID string, count int) error {
+func (u User) ModifySegmentCount(segmentID int, count int) error {
 
 	for i := range u.Segments {
 		if u.Segments[i].ID == segmentID {

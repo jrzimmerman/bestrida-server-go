@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	strava "github.com/strava/go.strava"
+	"github.com/strava/go.strava"
 )
 
 // StravaAuth will render a request to authorize strava user with Bestrida

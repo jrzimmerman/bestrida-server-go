@@ -15,7 +15,7 @@ type Map struct {
 // Segment struct handles the MongoDB schema for a segment
 type Segment struct {
 	ID                 int       `bson:"_id" json:"_id"`
-	ResourceState      int       `bson:"resourceState"json:"resourceState"`
+	ResourceState      int       `bson:"resourceState" json:"resourceState"`
 	Name               string    `bson:"name" json:"name"`
 	ActivityType       string    `bson:"activityType" json:"activityType"`
 	Distance           float64   `bson:"distance" json:"distance"`
