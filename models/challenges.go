@@ -22,7 +22,7 @@ type UserChallengeEffort struct {
 
 // Challenge struct handles the MongoDB schema for a challenge
 type Challenge struct {
-	ID         bson.ObjectId       `bson:"_id,omitempty" json:"_id"`
+	ID         bson.ObjectId       `bson:"_id,omitempty" json:"id"`
 	Segment    Segment             `json:"segment"`
 	Challenger UserChallengeEffort `json:"challenger"`
 	Challengee UserChallengeEffort `json:"challengee"`

@@ -40,9 +40,9 @@ func TestGetChallengeByIDSuccess(t *testing.T) {
 	}
 
 	challenge := result.Content.(map[string]interface{})
-	log.WithField("Challenge ID", challenge["_id"]).Info("Challenge returned from DB")
+	log.WithField("Challenge ID", challenge["id"]).Info("Challenge returned from DB")
 
-	if challenge["_id"] != id {
+	if challenge["id"] != id {
 		t.Errorf("unexpected challenge")
 	}
 }

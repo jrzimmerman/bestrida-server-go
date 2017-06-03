@@ -40,9 +40,9 @@ func TestGetSegmentByIDSuccess(t *testing.T) {
 	}
 
 	segment := result.Content.(map[string]interface{})
-	log.WithField("Segment ID", segment["_id"]).Info("Segment returned from DB")
+	log.WithField("Segment ID", segment["id"]).Info("Segment returned from DB")
 
-	segmentID := segment["_id"].(float64)
+	segmentID := segment["id"].(float64)
 
 	if int(segmentID) != id {
 		t.Errorf("unexpected segment")

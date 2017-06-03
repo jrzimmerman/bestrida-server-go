@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/jrzimmerman/bestrida-server-go/utils"
 	"github.com/pressly/chi"
-	strava "github.com/strava/go.strava"
+	"github.com/strava/go.strava"
 )
 
 var authenticator *strava.OAuthAuthenticator
