@@ -29,6 +29,7 @@ func StravaAuth(w http.ResponseWriter, r *http.Request) {
 	http.HandleFunc(path, authenticator.HandlerFunc(oAuthSuccess, oAuthFailure))
 }
 
+// AuthHandler Route to display Auth button
 func AuthHandler(w http.ResponseWriter, r *http.Request) {
 	// you should make this a template in your real application
 	fmt.Fprintf(w, `<a href="%s">`, authenticator.AuthorizationURL("state1", strava.Permissions.Public, true))
