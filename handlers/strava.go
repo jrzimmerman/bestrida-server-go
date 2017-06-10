@@ -16,7 +16,7 @@ func StravaAuth(w http.ResponseWriter, r *http.Request) {
 	// The RequestClientGenerator can be used to generate an http.RequestClient.
 	// This is usually when running on the Google App Engine platform.
 	authenticator = &strava.OAuthAuthenticator{
-		CallbackURL:            fmt.Sprintf("http://localhost:%d/exchange_token", port),
+		CallbackURL:            fmt.Sprintf("http://localhost:%s/exchange_token", port),
 		RequestClientGenerator: nil,
 	}
 
