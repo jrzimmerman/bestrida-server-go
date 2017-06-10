@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/jrzimmerman/bestrida-server-go/models"
 	"github.com/pressly/chi"
 )
 
@@ -34,17 +35,14 @@ func TestGetSegmentByIDSuccess(t *testing.T) {
 	}
 
 	// Unmarshal and check the response body
-	var result Response
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	var s models.Segment
+	if err := json.NewDecoder(resp.Body).Decode(&s); err != nil {
 		t.Errorf("unable to decode response: %s", err)
 	}
 
-	segment := result.Content.(map[string]interface{})
-	log.WithField("Segment ID", segment["id"]).Info("Segment returned from DB")
+	log.WithField("Segment ID", s.ID).Info("Segment returned from MongoDB")
 
-	segmentID := segment["id"].(float64)
-
-	if int(segmentID) != id {
+	if s.ID != id {
 		t.Errorf("unexpected segment")
 	}
 }

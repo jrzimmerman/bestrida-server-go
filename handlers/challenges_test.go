@@ -7,7 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"gopkg.in/mgo.v2/bson"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/jrzimmerman/bestrida-server-go/models"
 	"github.com/pressly/chi"
 )
 
@@ -34,16 +37,15 @@ func TestGetChallengeByIDSuccess(t *testing.T) {
 	}
 
 	// Unmarshal and check the response body
-	var result Response
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	var c models.Challenge
+	if err := json.NewDecoder(resp.Body).Decode(&c); err != nil {
 		t.Errorf("unable to decode response: %s", err)
 	}
 
-	challenge := result.Content.(map[string]interface{})
-	log.WithField("Challenge ID", challenge["id"]).Info("Challenge returned from DB")
+	log.WithField("Challenge ID", c.ID).Info("User returned from MongoDB")
 
-	if challenge["id"] != id {
-		t.Errorf("unexpected challenge")
+	if c.ID != bson.ObjectIdHex(id) {
+		t.Errorf("unexpected user")
 	}
 }
 

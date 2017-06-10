@@ -13,21 +13,20 @@ import (
 // GetEffortsBySegmentIDFromStrava returns efforts by segment ID from Strava
 func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	res := New(w)
-	defer res.Render()
 
 	id := chi.URLParam(r, "id")
 
 	numID, err := strconv.Atoi(id)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.SetResponse(500, "unable to convert ID param")
+		res.Render(500, "unable to convert ID param")
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		res.SetResponse(500, "unable to retrieve user from database")
+		res.Render(500, "unable to retrieve user from database")
 		return
 	}
 	userID := int64(user.ID)
@@ -36,7 +35,7 @@ func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	numSegmentID, err := strconv.ParseInt(segmentID, 10, 64)
 	if err != nil {
 		log.WithField("Segment ID", numSegmentID).Debug("unable to convert Segment ID param")
-		res.SetResponse(500, err)
+		res.Render(500, err)
 		return
 	}
 
@@ -46,9 +45,9 @@ func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Fetching segment %v info...", numSegmentID)
 	efforts, err := strava.NewSegmentsService(client).ListEfforts(numSegmentID).AthleteId(userID).Do()
 	if err != nil {
-		res.SetResponse(500, "Unable to retrieve segment efforts info")
+		res.Render(500, "Unable to retrieve segment efforts info")
 		return
 	}
 
-	res.SetResponse(200, efforts)
+	res.Render(200, efforts)
 }

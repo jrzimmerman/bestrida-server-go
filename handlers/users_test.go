@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/jrzimmerman/bestrida-server-go/models"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 )
@@ -34,17 +36,14 @@ func TestGetUserByIDSuccess(t *testing.T) {
 	}
 
 	// Unmarshal and check the response body
-	var result Response
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	var u models.User
+	if err := json.NewDecoder(resp.Body).Decode(&u); err != nil {
 		t.Errorf("unable to decode response: %s", err)
 	}
 
-	user := result.Content.(map[string]interface{})
-	log.WithField("User ID", user["id"]).Info("User returned from DB")
+	log.WithField("User ID", u.ID).Info("User returned from MongoDB")
 
-	userID := user["id"].(float64)
-
-	if int(userID) != id {
+	if u.ID != id {
 		t.Errorf("unexpected user")
 	}
 }
