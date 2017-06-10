@@ -36,28 +36,29 @@ func main() {
 		wg.Done()
 	}()
 
-	// Listen for an interrupt signal from the OS.
-	osSignals := make(chan os.Signal)
+	// Listen for an interrupt signal from the OS. Use a buffered
+	// channel because of how the signal package is implemented.
+	osSignals := make(chan os.Signal, 1)
 	signal.Notify(osSignals, os.Interrupt)
 
 	// Wait for a signal to shutdown.
 	<-osSignals
-
-	log.Println("\nShutting down the server...")
 
 	// Create a context to attempt a graceful 5 second shutdown.
 	const timeout = 5 * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
+	log.Println("\nShutting down the server...")
+
 	// Attempt the graceful shutdown by closing the listener and
 	// completing all inflight requests.
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("Graceful shutdown did not complete in %v : %v", timeout, err)
+		log.Printf("shutdown : Graceful shutdown did not complete in %v : %v", timeout, err)
 
 		// Looks like we timedout on the graceful shutdown. Kill it hard.
 		if err := srv.Close(); err != nil {
-			log.Printf("Error killing server : %v", err)
+			log.Printf("shutdown : Error killing server : %v", err)
 		}
 	}
 
