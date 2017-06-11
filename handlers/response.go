@@ -21,11 +21,6 @@ func (crw *ContextResponseWriter) WriteHeader(code int) {
 	crw.ResponseWriter.WriteHeader(code)
 }
 
-// GetStatus sets the status code for the ResponseWriter interface in the context package
-func (crw *ContextResponseWriter) GetStatus() int {
-	return crw.statusCode
-}
-
 // Response for all JSON requests
 type Response struct {
 	context ContextResponseWriter
