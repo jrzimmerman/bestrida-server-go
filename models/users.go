@@ -30,7 +30,7 @@ type User struct {
 	ID        int           `bson:"_id" json:"id"`
 	FirstName string        `bson:"firstname" json:"firstName"`
 	LastName  string        `bson:"lastname" json:"lastName"`
-	FullName  string        `bson:"fullName" json:"fullName"`
+	FullName  string        `bson:"fullname" json:"fullName"`
 	Token     string        `bson:"token" json:"token"`
 	Photo     string        `bson:"photo" json:"photo"`
 	Email     string        `bson:"email" json:"email"`
