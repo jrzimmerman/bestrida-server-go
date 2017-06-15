@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Welcome to Bestrida</title>
+  </head>
+  <body>
+    <div class="main">
+      <h2>Welcome to Bestrida!</h2>
+      <p>Please click 'Done' in the upper left corner to continue.</p>
+    </div>
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", function(event) {
+        var token = event.target.URL.match('oauth_token=(.*)&userId')[1];
+        var userId = event.target.URL.match('&userId=(.*)')[1];
+        window.location.replace("bestrida://bestrida?oauth_token="+token+"&userId="+userId);
+      });
+    </script>
+  </body>
+</html>
