@@ -4,36 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/strava/go.strava"
 )
-
-// StravaAuth will render a request to authorize strava user with Bestrida
-func StravaAuth(w http.ResponseWriter, r *http.Request) {
-	// define a strava.OAuthAuthenticator to hold state.
-	// The callback url is used to generate an AuthorizationURL.
-	// The RequestClientGenerator can be used to generate an http.RequestClient.
-	// This is usually when running on the Google App Engine platform.
-	authenticator = &strava.OAuthAuthenticator{
-		CallbackURL:            fmt.Sprintf("http://localhost:%s/exchange_token", port),
-		RequestClientGenerator: nil,
-	}
-
-	path, err := authenticator.CallbackPath()
-	if err != nil {
-		// possibly that the callback url set above is invalid
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	http.HandleFunc(path, authenticator.HandlerFunc(oAuthSuccess, oAuthFailure))
-}
 
 // AuthHandler Route to display Auth button
 func AuthHandler(w http.ResponseWriter, r *http.Request) {
 	// you should make this a template in your real application
 	fmt.Fprintf(w, `<a href="%s">`, authenticator.AuthorizationURL("", strava.Permissions.Public, false))
-	fmt.Fprint(w, `<img src="http://strava.github.io/api/images/ConnectWithStrava.png" />`)
+	fmt.Fprint(w, `<img src="http://strava.github.io/api/images/btn_ConnectWith.png" />`)
 	fmt.Fprint(w, `</a>`)
 }
 
