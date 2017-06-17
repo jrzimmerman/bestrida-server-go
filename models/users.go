@@ -1,8 +1,10 @@
 package models
 
 import (
+	"time"
+
 	log "github.com/Sirupsen/logrus"
-	"gopkg.in/mgo.v2/bson"
+	strava "github.com/strava/go.strava"
 )
 
 // Friend struct handles the MongoDB schema for each users friends
@@ -27,10 +29,14 @@ type UserSegment struct {
 
 // User struct handles the MongoDB schema for a user
 type User struct {
-	ID        int           `bson:"_id" json:"id"`
+	ID        int64         `bson:"_id" json:"id"`
 	FirstName string        `bson:"firstname" json:"firstName"`
 	LastName  string        `bson:"lastname" json:"lastName"`
 	FullName  string        `bson:"fullname" json:"fullName"`
+	City      string        `bson:"city" json:"city"`
+	State     string        `bson:"state" json:"state"`
+	Country   string        `bson:"country" json:"country"`
+	Gender    string        `bson:"gender" json:"gender"`
 	Token     string        `bson:"token" json:"token"`
 	Photo     string        `bson:"photo" json:"photo"`
 	Email     string        `bson:"email" json:"email"`
@@ -38,33 +44,89 @@ type User struct {
 	Segments  []UserSegment `bson:"segments" json:"segments"`
 	Wins      int           `bson:"wins" json:"wins"`
 	Losses    int           `bson:"losses" json:"losses"`
+	CreatedAt time.Time     `bson:"createdAt" json:"createdAt,omitempty"`
+	UpdatedAt time.Time     `bson:"updatedAt" json:"updatedAt,omitempty"`
+	DeletedAt *time.Time    `bson:"deletedAt" json:"deletedAt,omitempty"`
 }
 
 // GetUserByID gets a single stored user from MongoDB
-func GetUserByID(id int) (*User, error) {
+func GetUserByID(id int64) (*User, error) {
 	var u User
 
-	if err := session.DB(name).C("users").Find(bson.M{"_id": id}).One(&u); err != nil {
-		log.WithField("ID", id).Error("Unable to find user with id")
+	if err := session.DB(name).C("users").FindId(id).One(&u); err != nil {
+		log.WithField("ID", id).Errorf("Unable to find user with id:\n%v", err)
+		return nil, err
+	}
+
+	log.WithField("user", &u).Infof("user found:\n%v", &u)
+
+	return &u, nil
+}
+
+// CreateUser creates user in MongoDB
+func CreateUser(auth *strava.AuthorizationResponse) (*User, error) {
+	user := User{
+		ID:        auth.Athlete.Id,
+		FirstName: auth.Athlete.FirstName,
+		LastName:  auth.Athlete.LastName,
+		FullName:  auth.Athlete.FirstName + " " + auth.Athlete.LastName,
+		City:      auth.Athlete.City,
+		State:     auth.Athlete.State,
+		Country:   auth.Athlete.Country,
+		Gender:    string(auth.Athlete.Gender),
+		Token:     auth.AccessToken,
+		Photo:     auth.Athlete.Profile,
+		Email:     auth.Athlete.Email,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := session.DB(name).C("users").Insert(&user); err != nil {
+		log.WithField("ID", user.ID).Errorf("Unable to create user with id:\n %v", err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+// UpdateUser updates user in MongoDB
+func (u User) UpdateUser(auth *strava.AuthorizationResponse) (*User, error) {
+	u.ID = auth.Athlete.Id
+	u.FirstName = auth.Athlete.FirstName
+	u.LastName = auth.Athlete.LastName
+	u.FullName = auth.Athlete.FirstName + " " + auth.Athlete.LastName
+	u.City = auth.Athlete.City
+	u.State = auth.Athlete.State
+	u.Country = auth.Athlete.Country
+	u.Gender = string(auth.Athlete.Gender)
+	u.Token = auth.AccessToken
+	u.Photo = auth.Athlete.Profile
+	u.Email = auth.Athlete.Email
+	u.UpdatedAt = time.Now()
+
+	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+		log.WithField("ID", u.ID).Errorf("Unable to update user with id:\n %v", err)
 		return nil, err
 	}
 
 	return &u, nil
 }
 
-// ModifySegmentCount will modify a segment count by the count param for a specific user
-func (u User) ModifySegmentCount(segmentID int, count int) error {
-
-	for i := range u.Segments {
-		if u.Segments[i].ID == segmentID {
-			u.Segments[i].Count = u.Segments[i].Count + count
-			break
+// RegisterUser creates a user in MongoDB
+func RegisterUser(auth *strava.AuthorizationResponse) (*User, error) {
+	u, err := GetUserByID(auth.Athlete.Id)
+	if err != nil {
+		log.WithField("ID", auth.Athlete.Id).Info("Unable to find user with id, creating user")
+		user, err := CreateUser(auth)
+		if err != nil {
+			return nil, err
 		}
+		return user, nil
 	}
-
-	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
-		return err
+	log.WithField("ID", u.ID).Info("Found user with id, updating user")
+	user, err := u.UpdateUser(auth)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil
+	return user, nil
 }

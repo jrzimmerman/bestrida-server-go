@@ -16,7 +16,7 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
-	numID, err := strconv.Atoi(id)
+	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
 		res.Render(400, "unable to convert ID param")
@@ -49,7 +49,7 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
-	numID, err := strconv.Atoi(id)
+	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
 		res.Render(500, "unable to convert ID param")
@@ -84,7 +84,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	var segments []*strava.SegmentDetailed
 
 	// convert id string to number
-	numID, err := strconv.Atoi(id)
+	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
 		res.Render(500, "unable to convert ID param")

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/jrzimmerman/bestrida-server-go/models"
 	"github.com/strava/go.strava"
 )
 
@@ -24,6 +25,7 @@ func oAuthSuccess(auth *strava.AuthorizationResponse, w http.ResponseWriter, r *
 	fmt.Fprintf(w, "The Authenticated Athlete (you):\n")
 	content, _ := json.MarshalIndent(auth.Athlete, "", " ")
 	fmt.Fprint(w, string(content))
+	models.RegisterUser(auth)
 }
 
 func oAuthFailure(err error, w http.ResponseWriter, r *http.Request) {

@@ -7,8 +7,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// UserChallengeEffort struct handles the MongoDB schema for each users challenge effort
-type UserChallengeEffort struct {
+// Effort struct handles the MongoDB schema for each users challenge effort
+type Effort struct {
 	ID               int     `json:"id"`
 	Name             string  `json:"name"`
 	Photo            string  `json:"photo"`
@@ -22,19 +22,22 @@ type UserChallengeEffort struct {
 
 // Challenge struct handles the MongoDB schema for a challenge
 type Challenge struct {
-	ID         bson.ObjectId       `bson:"_id,omitempty" json:"id"`
-	Segment    Segment             `json:"segment"`
-	Challenger UserChallengeEffort `json:"challenger"`
-	Challengee UserChallengeEffort `json:"challengee"`
-	Status     string              `json:"status"`
-	Created    time.Time           `json:"created"`
-	Expires    time.Time           `json:"expires"`
-	Completed  time.Time           `json:"completed"`
-	Expired    bool                `json:"expired"`
-	WinnerID   int                 `json:"winnerId"`
-	WinnerName string              `json:"winnerName"`
-	LoserID    int                 `json:"loserId"`
-	LoserName  string              `json:"loserName"`
+	ID         bson.ObjectId `bson:"_id,omitempty" json:"id"`
+	Segment    Segment       `bson:"segment" json:"segment"`
+	Challenger Effort        `bson:"challenger" json:"challenger"`
+	Challengee Effort        `bson:"challengee" json:"challengee"`
+	Status     string        `bson:"status" json:"status"`
+	Created    time.Time     `bson:"created" json:"created"`
+	Expires    time.Time     `bson:"expires" json:"expires"`
+	Completed  time.Time     `bson:"completed" json:"completed"`
+	Expired    bool          `bson:"expired" json:"expired"`
+	WinnerID   int           `bson:"winnerId" json:"winnerId"`
+	WinnerName string        `bson:"winnerName" json:"winnerName"`
+	LoserID    int           `bson:"loserId" json:"loserId"`
+	LoserName  string        `bson:"loserName" json:"loserName"`
+	CreatedAt  time.Time     `bson:"createdAt" json:"createdAt,omitempty"`
+	UpdatedAt  time.Time     `bson:"updatedAt" json:"updatedAt,omitempty"`
+	DeletedAt  *time.Time    `bson:"deletedAt" json:"deletedAt,omitempty"`
 }
 
 // GetChallengeByID gets a single stored challenge from MongoDB

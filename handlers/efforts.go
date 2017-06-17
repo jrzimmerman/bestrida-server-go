@@ -16,7 +16,7 @@ func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
-	numID, err := strconv.Atoi(id)
+	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
 		res.Render(500, "unable to convert ID param")

@@ -3,7 +3,7 @@ package models
 import "testing"
 
 func TestGetUserByIDSuccess(t *testing.T) {
-	id := 1027935
+	id := int64(1027935)
 
 	user, err := GetUserByID(id)
 	if err != nil {
@@ -16,75 +16,10 @@ func TestGetUserByIDSuccess(t *testing.T) {
 }
 
 func TestGetUserByIDFailure(t *testing.T) {
-	id := 0
+	id := int64(0)
 
 	_, err := GetUserByID(id)
 	if err.Error() != "not found" {
 		t.Errorf("Unable to throw error for ID:\n %v", err)
-	}
-}
-
-func TestModifySegmentCountSuccess(t *testing.T) {
-	// id for specific user
-	id := 1027935
-
-	// segmentID for a segment's strava segment ID
-	segmentID := 10599051
-
-	user, err := GetUserByID(id)
-	if err != nil {
-		t.Errorf("Unable to retrieve user by ID:\n %v", err)
-	}
-
-	var userSegmentCount int
-	for i := range user.Segments {
-		if user.Segments[i].ID == segmentID {
-			userSegmentCount = user.Segments[i].Count
-			break
-		}
-	}
-
-	// modify the segment count for a users segment array by 1
-	if err := user.ModifySegmentCount(segmentID, 1); err != nil {
-		t.Errorf("Unable to modify segment count:\n %v", err)
-	}
-
-	var modifiedSegmentCount int
-	for i := range user.Segments {
-		if user.Segments[i].ID == segmentID {
-			modifiedSegmentCount = user.Segments[i].Count
-			break
-		}
-	}
-
-	if modifiedSegmentCount != userSegmentCount+1 {
-		t.Errorf("Expected Modified User Segments to be %v, but received %v instead", userSegmentCount, modifiedSegmentCount)
-	}
-
-	// clean up users segment count after test
-	if err := user.ModifySegmentCount(segmentID, -1); err != nil {
-		t.Errorf("Unable to modify segment count:\n %v", err)
-	}
-
-	var cleanedSegmentCount int
-	for i := range user.Segments {
-		if user.Segments[i].ID == segmentID {
-			cleanedSegmentCount = user.Segments[i].Count
-			break
-		}
-	}
-
-	if cleanedSegmentCount != userSegmentCount {
-		t.Errorf("Expected Cleaned User Segments to be %v, but received %v instead", userSegmentCount, cleanedSegmentCount)
-	}
-}
-
-func TestModifySegmentCountFailure(t *testing.T) {
-	u := User{}
-	segmentID := 10599051
-
-	if err := u.ModifySegmentCount(segmentID, 1); err == nil {
-		t.Errorf("Unable to catch modify segment count error.")
-		return
 	}
 }

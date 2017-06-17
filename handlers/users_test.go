@@ -43,7 +43,7 @@ func TestGetUserByIDSuccess(t *testing.T) {
 
 	log.WithField("User ID", u.ID).Info("User returned from MongoDB")
 
-	if u.ID != id {
+	if u.ID != int64(id) {
 		t.Errorf("unexpected user")
 	}
 }
