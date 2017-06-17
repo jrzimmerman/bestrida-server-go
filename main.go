@@ -54,11 +54,11 @@ func main() {
 	// Attempt the graceful shutdown by closing the listener and
 	// completing all inflight requests.
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("shutdown : Graceful shutdown did not complete in %v : %v", timeout, err)
+		log.Debugf("shutdown : Graceful shutdown did not complete in %v : %v", timeout, err)
 
 		// Looks like we timedout on the graceful shutdown. Kill it hard.
 		if err := srv.Close(); err != nil {
-			log.Printf("shutdown : Error killing server : %v", err)
+			log.WithError(err).Errorf("shutdown : Error killing server : %v", err)
 		}
 	}
 
