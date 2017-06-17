@@ -30,5 +30,6 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Infof("user %d found", user.ID)
 	res.Render(200, user)
 }

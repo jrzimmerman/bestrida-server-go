@@ -58,7 +58,10 @@ func API() (mux *chi.Mux) {
 			})
 
 			r.Route("/segments", func(r chi.Router) {
-				r.Get("/:id", GetSegmentByID)
+				r.Route("/:id", func(r chi.Router) {
+					r.Get("/", GetSegmentByID)
+					r.Get("/strava", GetSegmentByIDFromStrava)
+				})
 				r.Route("/efforts", func(r chi.Router) {
 					r.Get("/:id", GetEffortsBySegmentIDFromStrava)
 				})
