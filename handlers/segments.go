@@ -16,7 +16,7 @@ func GetSegmentByID(w http.ResponseWriter, r *http.Request) {
 	res := New(w)
 
 	id := chi.URLParam(r, "id")
-	numID, err := strconv.Atoi(id)
+	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("id", numID).Debug("unable to convert ID param")
 		res.Render(500, err)
@@ -52,12 +52,21 @@ func GetSegmentByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// use our access token to grab generic segment info
 	client := strava.NewClient(accessToken)
 
-	log.Infof("Fetching segment %v info...", id)
+	log.Infof("Fetching segment %v info from strava...", id)
 	segment, err := strava.NewSegmentsService(client).Get(numID).Do()
 	if err != nil {
 		res.Render(500, "Unable to retrieve segment info")
 		return
 	}
-
+	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+	log.Infof("segment %v retrieved from strava", segment.Id)
 	res.Render(200, segment)
+
+	// store segment in background after render
+	s, err := models.GetSegmentByID(segment.Id)
+	if err != nil {
+		models.SaveSegment(segment)
+	} else {
+		s.UpdateSegment(segment)
+	}
 }
