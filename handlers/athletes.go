@@ -42,7 +42,11 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
 	log.Infof("athlete %v retrieved from strava", athlete.Id)
-	res.Render(200, athlete)
+	u, err := user.UpdateAthlete(athlete)
+	if err != nil {
+		log.WithError(err).Errorf("unable to update athlete %d", athlete.Id)
+	}
+	res.Render(200, &u)
 }
 
 // GetFriendsByUserIDFromStrava returns a list of friends for a specific user by ID from strava

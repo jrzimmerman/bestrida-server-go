@@ -3,7 +3,7 @@ package models
 import "testing"
 
 func TestGetUserByIDSuccess(t *testing.T) {
-	id := int64(1027935)
+	id := int64(17198619)
 
 	user, err := GetUserByID(id)
 	if err != nil {

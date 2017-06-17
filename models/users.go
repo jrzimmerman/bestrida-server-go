@@ -54,11 +54,11 @@ func GetUserByID(id int64) (*User, error) {
 	var u User
 
 	if err := session.DB(name).C("users").FindId(id).One(&u); err != nil {
-		log.WithField("ID", id).Errorf("Unable to find user with id:\n%v", err)
+		log.WithField("USER ID", id).Errorf("Unable to find user with id:\n%v", err)
 		return nil, err
 	}
 
-	log.WithField("user", &u).Infof("user found:\n%v", &u)
+	log.WithField("USER ID", u.ID).Infof("user found %d", u.ID)
 
 	return &u, nil
 }
@@ -129,4 +129,26 @@ func RegisterUser(auth *strava.AuthorizationResponse) (*User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+// UpdateAthlete updates user in MongoDB
+func (u User) UpdateAthlete(athlete *strava.AthleteDetailed) (*User, error) {
+	u.ID = athlete.Id
+	u.FirstName = athlete.FirstName
+	u.LastName = athlete.LastName
+	u.FullName = athlete.FirstName + " " + athlete.LastName
+	u.City = athlete.City
+	u.State = athlete.State
+	u.Country = athlete.Country
+	u.Gender = string(athlete.Gender)
+	u.Photo = athlete.Profile
+	u.Email = athlete.Email
+	u.UpdatedAt = time.Now()
+
+	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+		log.WithField("USER ID", u.ID).Errorf("Unable to update user:\n %v", err)
+		return nil, err
+	}
+	log.WithField("ATHLETE ID", u.ID).Infof("athlete %d updated", u.ID)
+	return &u, nil
 }

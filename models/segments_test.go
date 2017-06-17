@@ -3,7 +3,7 @@ package models
 import "testing"
 
 func TestGetSegmentByIDSuccess(t *testing.T) {
-	id := 2539276
+	id := int64(2539276)
 
 	segment, err := GetSegmentByID(id)
 	if err != nil {
@@ -16,7 +16,7 @@ func TestGetSegmentByIDSuccess(t *testing.T) {
 }
 
 func TestGetSegmentByIDFailure(t *testing.T) {
-	id := 0
+	id := int64(0)
 
 	_, err := GetSegmentByID(id)
 	if err.Error() != "not found" {

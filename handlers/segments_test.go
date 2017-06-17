@@ -42,7 +42,7 @@ func TestGetSegmentByIDSuccess(t *testing.T) {
 
 	log.WithField("Segment ID", s.ID).Info("Segment returned from MongoDB")
 
-	if s.ID != id {
+	if s.ID != int64(id) {
 		t.Errorf("unexpected segment")
 	}
 }
