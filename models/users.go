@@ -4,7 +4,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	strava "github.com/strava/go.strava"
+	"github.com/strava/go.strava"
 )
 
 // Friend struct handles the MongoDB schema for each users friends
@@ -105,7 +105,7 @@ func (u User) UpdateUser(auth *strava.AuthorizationResponse) (*User, error) {
 	u.UpdatedAt = time.Now()
 
 	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
-		log.WithField("ID", u.ID).Errorf("Unable to update user with id:\n %v", err)
+		log.WithField("USER ID", u.ID).Errorf("Unable to update user:\n %v", err)
 		return nil, err
 	}
 
