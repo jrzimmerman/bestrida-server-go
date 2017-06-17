@@ -40,6 +40,8 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+	log.Infof("athlete %v retrieved from strava", athlete.Id)
 	res.Render(200, athlete)
 }
 
@@ -73,6 +75,11 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// store friends for a specific user
+
+	// return request
+	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+	log.Infof("found %d friends for athlete %d from strava", len(friends), user.ID)
 	res.Render(200, friends)
 }
 
@@ -81,13 +88,14 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	res := New(w)
 
 	id := chi.URLParam(r, "id")
-	var segments []*strava.SegmentDetailed
 
-	// convert id string to number
+	var segments []*models.Segment
+
+	// convert user id string from url param to number
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(500, "unable to convert ID param")
+		log.WithField("USER ID", numID).Error("unable to convert USER ID param")
+		res.Render(500, "unable to convert USER ID param")
 		return
 	}
 
@@ -95,7 +103,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		res.Render(500, "unable to retrieve user from database")
+		res.Render(404, "unable to retrieve user from database")
 		return
 	}
 
@@ -103,11 +111,14 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	client := strava.NewClient(user.Token)
 
 	log.Info("Fetching athlete activity summary info...\n")
-	activities, err := strava.NewCurrentAthleteService(client).ListActivities().Do()
+	activities, err := strava.NewCurrentAthleteService(client).ListActivities().Page(1).PerPage(200).Do()
 	if err != nil {
 		res.Render(500, "Unable to retrieve athlete activities summary")
 		return
 	}
+
+	// create a segment map to return only unique segments
+	segmentMap := make(map[int64]*models.Segment, 0)
 
 	// range over activity summary to get activity details
 	// the activity summary does not have segment efforts to view recent segments
@@ -123,7 +134,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 			log.WithFields(map[string]interface{}{
 				"NAME": activityDetail.Name,
 				"ID":   activityDetail.Id,
-			}).Error("unable to retrieve activity detail")
+			}).Errorf("unable to retrieve activity detail: \n%v", err)
 			res.Render(500, map[string]interface{}{
 				"error":    "Unable to retrieve activity detail",
 				"activity": activityDetail,
@@ -134,22 +145,45 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		// range over segment efforts from the activity detail
 		// to obtain segment details to cache
 		for _, effort := range activityDetail.SegmentEfforts {
-			log.WithField("SEGMENT", effort.Name).Info("segment effort from activity detail")
-			segmentDetail, err := strava.NewSegmentsService(client).Get(effort.Segment.Id).Do()
+			log.WithField("SEGMENT", effort.Segment.Name).Info("segment effort from activity detail")
+			// check if segment is in MongoDB
+			segment, err := models.GetSegmentByID(effort.Segment.Id)
 			if err != nil {
-				log.WithFields(map[string]interface{}{
-					"NAME": effort.Name,
-					"ID":   effort.Id,
-				}).Error("unable to retrieve activity detail")
-				res.Render(500, map[string]interface{}{
-					"error":   "Unable to retrieve activity detail",
-					"segment": effort,
-				})
-				return
+				// segment not found, make request to strava
+				log.WithField("SEGMENT ID", effort.Segment.Id).Infof("segment %v not found in MongoDB... saving", effort.Segment.Id)
+				segmentDetail, err := strava.NewSegmentsService(client).Get(effort.Segment.Id).Do()
+				if err != nil {
+					log.WithFields(map[string]interface{}{
+						"SEGMENT NAME": effort.Segment.Name,
+						"SEGMENT ID":   effort.Segment.Id,
+					}).Errorf("unable to retrieve segment detail for %d %s", effort.Segment.Id, effort.Segment.Name)
+					res.Render(500, map[string]interface{}{
+						"error":   "Unable to retrieve segment detail",
+						"segment": effort.Segment,
+					})
+					return
+				}
+				log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+				log.WithField("SEGMENT DETAIL ID", segmentDetail.Id).Infof("segment %d returned from strava", segmentDetail.Id)
+				segment, err := models.SaveSegment(segmentDetail)
+				if err != nil {
+					log.WithError(err).Errorf("unable to save segment detail %d to MongoDB", segmentDetail.Id)
+					return
+				}
+				log.WithField("SEGMENT ID", segment.ID).Infof("retrieved segment %d detail from strava", segment.ID)
+				segmentMap[segment.ID] = segment
+			} else {
+				// segment was found and returned
+				segmentMap[segment.ID] = segment
 			}
-			log.WithField("SEGMENT DETAIL", segmentDetail).Info("retrieved segment detail from strava")
-			segments = append(segments, segmentDetail)
 		}
 	}
+	// store segment map for user
+
+	// range over segmentMap to creake segments array
+	for _, segment := range segmentMap {
+		segments = append(segments, segment)
+	}
+	log.Infof("found %d unique segments", len(segments))
 	res.Render(200, segments)
 }
