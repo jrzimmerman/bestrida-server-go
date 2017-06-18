@@ -1,2 +1,4 @@
 coverage.txt
 profile.out
+.vscode
+.DS_Store
