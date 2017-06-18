@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 
 	log "github.com/Sirupsen/logrus"
@@ -37,72 +38,69 @@ func API() (mux *chi.Mux) {
 	mux.Use(CORS)
 
 	mux.HandleFunc(path, authenticator.HandlerFunc(oAuthSuccess, oAuthFailure))
+	mux.FileServer("/", http.Dir("public"))
 
-	mux.Route("/", func(r chi.Router) {
-		r.Get("/", LandingHandler)
-
-		r.Route("/api", func(r chi.Router) {
-			r.Route("/users", func(r chi.Router) {
-				r.Route("/:id", func(r chi.Router) {
-					r.Get("/", GetUserByID)
-					r.Route("/challenges", func(r chi.Router) {
+	mux.Route("/api", func(r chi.Router) {
+		r.Route("/users", func(r chi.Router) {
+			r.Route("/:id", func(r chi.Router) {
+				r.Get("/", GetUserByID)
+				r.Route("/challenges", func(r chi.Router) {
+					r.Get("/", GetChallengeByID)
+					r.Route("/:id", func(r chi.Router) {
 						r.Get("/", GetChallengeByID)
-						r.Route("/:id", func(r chi.Router) {
-							r.Get("/", GetChallengeByID)
-							r.Get("/pending", GetChallengeByID)
-							r.Get("/active", GetChallengeByID)
-							r.Get("/completed", GetChallengeByID)
-						})
+						r.Get("/pending", GetChallengeByID)
+						r.Get("/active", GetChallengeByID)
+						r.Get("/completed", GetChallengeByID)
 					})
-				})
-			})
-
-			r.Route("/segments", func(r chi.Router) {
-				r.Route("/:id", func(r chi.Router) {
-					r.Get("/", GetSegmentByID)
-					r.Get("/strava", GetSegmentByIDFromStrava)
-				})
-				r.Route("/efforts", func(r chi.Router) {
-					r.Get("/:id", GetEffortsBySegmentIDFromStrava)
-				})
-			})
-
-			r.Route("/efforts", func(r chi.Router) {
-				r.Get("/:id", GetEffortsBySegmentIDFromStrava)
-			})
-
-			r.Route("/challenges", func(r chi.Router) {
-				r.Get("/:id", GetChallengeByID)
-				r.Post("/accept", GetChallengeByID)
-				r.Post("/decline", GetChallengeByID)
-				r.Post("/complete", GetChallengeByID)
-
-				r.Route("/pending", func(r chi.Router) {
-					r.Get("/:id", GetChallengeByID)
-				})
-
-				r.Route("/active", func(r chi.Router) {
-					r.Get("/:id", GetChallengeByID)
-				})
-
-				r.Route("/completed", func(r chi.Router) {
-					r.Get("/:id", GetChallengeByID)
-				})
-			})
-
-			r.Route("/athletes", func(r chi.Router) {
-				r.Route("/:id", func(r chi.Router) {
-					r.Get("/", GetAthleteByIDFromStrava)
-					r.Get("/friends", GetFriendsByUserIDFromStrava)
-					r.Get("/segments", GetSegmentsByUserIDFromStrava)
 				})
 			})
 		})
 
-		r.Route("/strava", func(r chi.Router) {
-			r.Route("/auth", func(r chi.Router) {
-				r.Get("/", AuthHandler)
+		r.Route("/segments", func(r chi.Router) {
+			r.Route("/:id", func(r chi.Router) {
+				r.Get("/", GetSegmentByID)
+				r.Get("/strava", GetSegmentByIDFromStrava)
 			})
+			r.Route("/efforts", func(r chi.Router) {
+				r.Get("/:id", GetEffortsBySegmentIDFromStrava)
+			})
+		})
+
+		r.Route("/efforts", func(r chi.Router) {
+			r.Get("/:id", GetEffortsBySegmentIDFromStrava)
+		})
+
+		r.Route("/challenges", func(r chi.Router) {
+			r.Get("/:id", GetChallengeByID)
+			r.Post("/accept", GetChallengeByID)
+			r.Post("/decline", GetChallengeByID)
+			r.Post("/complete", GetChallengeByID)
+
+			r.Route("/pending", func(r chi.Router) {
+				r.Get("/:id", GetChallengeByID)
+			})
+
+			r.Route("/active", func(r chi.Router) {
+				r.Get("/:id", GetChallengeByID)
+			})
+
+			r.Route("/completed", func(r chi.Router) {
+				r.Get("/:id", GetChallengeByID)
+			})
+		})
+
+		r.Route("/athletes", func(r chi.Router) {
+			r.Route("/:id", func(r chi.Router) {
+				r.Get("/", GetAthleteByIDFromStrava)
+				r.Get("/friends", GetFriendsByUserIDFromStrava)
+				r.Get("/segments", GetSegmentsByUserIDFromStrava)
+			})
+		})
+	})
+
+	mux.Route("/strava", func(r chi.Router) {
+		r.Route("/auth", func(r chi.Router) {
+			r.Get("/", AuthHandler)
 		})
 	})
 
