@@ -12,7 +12,7 @@ package handlers
 // )
 
 // func TestGetEffortsBySegmentIDFromStravaSuccess(t *testing.T) {
-// 	id := 1027935
+// 	id := 17198619
 // 	segmentID := 9719730
 
 // 	// Create the http request
@@ -82,7 +82,7 @@ package handlers
 // }
 
 // func TestGetEffortsBySegmentIDFromStravaFailureSegmentInput(t *testing.T) {
-// 	id := 1027935
+// 	id := 17198619
 // 	segmentID := "test"
 
 // 	// Create the http request

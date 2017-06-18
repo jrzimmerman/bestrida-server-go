@@ -19,7 +19,7 @@ func TestGetAthleteByIDFromStravaSuccess(t *testing.T) {
 	r.Get("/:id", GetAthleteByIDFromStrava)
 	server := httptest.NewServer(r)
 
-	id := 1027935
+	id := 17198619
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id), server.URL), nil)
@@ -90,7 +90,7 @@ func TestGetAthleteByIDFromStravaFailureURL(t *testing.T) {
 // }
 
 // func TestGetFriendsByUserIDFromStravaSuccess(t *testing.T) {
-// 	id := 1027935
+// 	id := 17198619
 
 // 	// Create the http request
 // 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/friends", id), nil)
@@ -159,7 +159,7 @@ func TestGetSegmentsByUserIDFromStravaSuccess(t *testing.T) {
 	r.Get("/:id", GetSegmentsByUserIDFromStrava)
 	server := httptest.NewServer(r)
 
-	id := 1027935
+	id := 17198619
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id), server.URL), nil)

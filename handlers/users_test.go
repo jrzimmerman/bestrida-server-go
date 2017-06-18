@@ -19,7 +19,7 @@ func TestGetUserByIDSuccess(t *testing.T) {
 	r.Get("/:id", GetUserByID)
 	server := httptest.NewServer(r)
 
-	id := 1027935
+	id := 17198619
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id), server.URL), nil)
