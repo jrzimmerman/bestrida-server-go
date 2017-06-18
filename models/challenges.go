@@ -64,7 +64,7 @@ func CreateChallenge(c Challenge) error {
 
 // RemoveChallenge removes a challenge from MongoDB
 func RemoveChallenge(id bson.ObjectId) error {
-	if err := session.DB(name).C("challenges").Remove(bson.M{"_id": id}); err != nil {
+	if err := session.DB(name).C("challenges").RemoveId(id); err != nil {
 		log.WithField("ID", id).Error("Unable to find challenge with id in database")
 		return err
 	}
