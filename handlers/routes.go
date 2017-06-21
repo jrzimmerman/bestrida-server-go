@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/utils"
 	"github.com/pressly/chi"
 	"github.com/strava/go.strava"
@@ -25,11 +25,11 @@ func API() (mux *chi.Mux) {
 	path, err := authenticator.CallbackPath()
 	if err != nil {
 		// possibly that the callback url set above is invalid
-		log.Error(err)
+		logrus.Error(err)
 	}
 	clientIDInt, err := strconv.Atoi(clientID)
 	if err != nil {
-		log.Error(err)
+		logrus.Error(err)
 	}
 	strava.ClientId = clientIDInt
 	strava.ClientSecret = clientSecret

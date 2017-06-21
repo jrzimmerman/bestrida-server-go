@@ -8,9 +8,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/models"
-
-	log "github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 )
 
@@ -41,7 +40,7 @@ func TestGetUserByIDSuccess(t *testing.T) {
 		t.Errorf("unable to decode response: %s", err)
 	}
 
-	log.WithField("User ID", u.ID).Info("User returned from MongoDB")
+	logrus.WithField("User ID", u.ID).Info("User returned from MongoDB")
 
 	if u.ID != int64(id) {
 		t.Errorf("unexpected user")

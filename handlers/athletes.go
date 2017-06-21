@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/models"
 	"github.com/pressly/chi"
 	strava "github.com/strava/go.strava"
@@ -18,21 +18,21 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to convert ID param")
+		logrus.WithField("ID", numID).Error("unable to convert ID param")
 		res.Render(400, "unable to convert ID param")
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to retrieve user from database")
+		logrus.WithField("ID", numID).Error("unable to retrieve user from database")
 		res.Render(500, "unable to retrieve user from database")
 		return
 	}
 
 	client := strava.NewClient(user.Token)
 
-	log.Info("Fetching athlete info...\n")
+	logrus.Info("Fetching athlete info...\n")
 	// retrieve a list of users segments from Strava API
 	athlete, err := strava.NewCurrentAthleteService(client).Get().Do()
 	if err != nil {
@@ -40,11 +40,11 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
-	log.Infof("athlete %v retrieved from strava", athlete.Id)
+	logrus.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+	logrus.Infof("athlete %v retrieved from strava", athlete.Id)
 	u, err := user.UpdateAthlete(athlete)
 	if err != nil {
-		log.WithError(err).Errorf("unable to update athlete %d", athlete.Id)
+		logrus.WithError(err).Errorf("unable to update athlete %d", athlete.Id)
 	}
 	res.Render(200, &u)
 }
@@ -57,21 +57,21 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to convert ID param")
+		logrus.WithField("ID", numID).Error("unable to convert ID param")
 		res.Render(500, "unable to convert ID param")
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to retrieve user from database")
+		logrus.WithField("ID", numID).Error("unable to retrieve user from database")
 		res.Render(500, "unable to retrieve user from database")
 		return
 	}
 
 	client := strava.NewClient(user.Token)
 
-	log.Info("Fetching athlete friends info...\n")
+	logrus.Info("Fetching athlete friends info...\n")
 	// retrieve a list of users friends from Strava API
 	friends, err := strava.NewCurrentAthleteService(client).ListFriends().Do()
 	if err != nil {
@@ -82,8 +82,8 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// store friends for a specific user
 
 	// return request
-	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
-	log.Infof("found %d friends for athlete %d from strava", len(friends), user.ID)
+	logrus.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+	logrus.Infof("found %d friends for athlete %d from strava", len(friends), user.ID)
 	res.Render(200, friends)
 }
 
@@ -98,7 +98,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// convert user id string from url param to number
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.WithField("USER ID", numID).Error("unable to convert USER ID param")
+		logrus.WithField("USER ID", numID).Error("unable to convert USER ID param")
 		res.Render(500, "unable to convert USER ID param")
 		return
 	}
@@ -106,7 +106,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// find user by numID to retrieve strava token
 	user, err := models.GetUserByID(numID)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to retrieve user from database")
+		logrus.WithField("ID", numID).Error("unable to retrieve user from database")
 		res.Render(404, "unable to retrieve user from database")
 		return
 	}
@@ -114,7 +114,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// create new strava client with user token
 	client := strava.NewClient(user.Token)
 
-	log.Info("Fetching athlete activity summary info...\n")
+	logrus.Info("Fetching athlete activity summary info...\n")
 	activities, err := strava.NewCurrentAthleteService(client).ListActivities().Page(1).PerPage(200).Do()
 	if err != nil {
 		res.Render(500, "Unable to retrieve athlete activities summary")
@@ -127,7 +127,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// range over activity summary to get activity details
 	// the activity summary does not have segment efforts to view recent segments
 	for _, activitySummary := range activities {
-		log.WithFields(map[string]interface{}{
+		logrus.WithFields(map[string]interface{}{
 			"NAME": activitySummary.Name,
 			"ID":   activitySummary.Id,
 		}).Info("activity summary")
@@ -135,7 +135,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		// request activity detail from strava to obtain segments
 		activityDetail, err := strava.NewActivitiesService(client).Get(activitySummary.Id).Do()
 		if err != nil {
-			log.WithFields(map[string]interface{}{
+			logrus.WithFields(map[string]interface{}{
 				"NAME": activityDetail.Name,
 				"ID":   activityDetail.Id,
 			}).Errorf("unable to retrieve activity detail: \n%v", err)
@@ -149,15 +149,15 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		// range over segment efforts from the activity detail
 		// to obtain segment details to cache
 		for _, effort := range activityDetail.SegmentEfforts {
-			log.WithField("SEGMENT", effort.Segment.Name).Info("segment effort from activity detail")
+			logrus.WithField("SEGMENT", effort.Segment.Name).Info("segment effort from activity detail")
 			// check if segment is in MongoDB
 			segment, err := models.GetSegmentByID(effort.Segment.Id)
 			if err != nil {
 				// segment not found, make request to strava
-				log.WithField("SEGMENT ID", effort.Segment.Id).Infof("segment %v not found in MongoDB... saving", effort.Segment.Id)
+				logrus.WithField("SEGMENT ID", effort.Segment.Id).Infof("segment %v not found in MongoDB... saving", effort.Segment.Id)
 				segmentDetail, err := strava.NewSegmentsService(client).Get(effort.Segment.Id).Do()
 				if err != nil {
-					log.WithFields(map[string]interface{}{
+					logrus.WithFields(map[string]interface{}{
 						"SEGMENT NAME": effort.Segment.Name,
 						"SEGMENT ID":   effort.Segment.Id,
 					}).Errorf("unable to retrieve segment detail for %d %s", effort.Segment.Id, effort.Segment.Name)
@@ -167,14 +167,14 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 					})
 					return
 				}
-				log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
-				log.WithField("SEGMENT DETAIL ID", segmentDetail.Id).Infof("segment %d returned from strava", segmentDetail.Id)
+				logrus.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+				logrus.WithField("SEGMENT DETAIL ID", segmentDetail.Id).Infof("segment %d returned from strava", segmentDetail.Id)
 				segment, err := models.SaveSegment(segmentDetail)
 				if err != nil {
-					log.WithError(err).Errorf("unable to save segment detail %d to MongoDB", segmentDetail.Id)
+					logrus.WithError(err).Errorf("unable to save segment detail %d to MongoDB", segmentDetail.Id)
 					return
 				}
-				log.WithField("SEGMENT ID", segment.ID).Infof("retrieved segment %d detail from strava", segment.ID)
+				logrus.WithField("SEGMENT ID", segment.ID).Infof("retrieved segment %d detail from strava", segment.ID)
 				segmentMap[segment.ID] = segment
 			} else {
 				// segment was found and returned
@@ -188,6 +188,6 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	for _, segment := range segmentMap {
 		segments = append(segments, segment)
 	}
-	log.Infof("found %d unique segments", len(segments))
+	logrus.Infof("found %d unique segments", len(segments))
 	res.Render(200, segments)
 }

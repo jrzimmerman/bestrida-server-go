@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/utils"
 	"gopkg.in/mgo.v2"
 )
@@ -28,7 +28,7 @@ func init() {
 	var err error
 	session, err = mgo.DialWithInfo(dbInfo)
 	if err != nil {
-		log.WithError(err).Fatal("Unable to create new session")
+		logrus.WithError(err).Fatal("Unable to create new session")
 	}
 }
 

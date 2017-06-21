@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/models"
 	"github.com/pressly/chi"
 )
@@ -40,7 +40,7 @@ func TestGetSegmentByIDSuccess(t *testing.T) {
 		t.Errorf("unable to decode response: %s", err)
 	}
 
-	log.WithField("Segment ID", s.ID).Info("Segment returned from MongoDB")
+	logrus.WithField("Segment ID", s.ID).Info("Segment returned from MongoDB")
 
 	if s.ID != int64(id) {
 		t.Errorf("unexpected segment")
@@ -116,7 +116,7 @@ func TestGetSegmentByIDFailureInput(t *testing.T) {
 // 		t.Errorf("unable to decode response: %s", err)
 // 	}
 
-// 	log.WithField("Segment ID", s.Id).Info("Segment returned from MongoDB")
+// 	logrus.WithField("Segment ID", s.Id).Info("Segment returned from MongoDB")
 
 // 	if s.Id != id {
 // 		t.Errorf("Expected segment ID %v, got %v instead", id, s.Id)

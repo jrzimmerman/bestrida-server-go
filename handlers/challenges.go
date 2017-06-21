@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"gopkg.in/mgo.v2/bson"
 
@@ -22,14 +22,14 @@ func GetChallengeByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	oid := bson.ObjectIdHex(id)
-	// log challenge ID
-	log.WithField("id", oid).Info("looking for challenge by ID")
+	// logrus.challenge ID
+	logrus.WithField("id", oid).Info("looking for challenge by ID")
 
 	challenge, err := models.GetChallengeByID(oid)
-	log.Infoln(challenge)
+	logrus.Infoln(challenge)
 
 	if err != nil {
-		log.WithField("ID", id).Debug("unable to get challenge by ID")
+		logrus.WithField("ID", id).Debug("unable to get challenge by ID")
 		res.Render(500, err)
 		return
 	}
