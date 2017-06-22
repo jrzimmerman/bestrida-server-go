@@ -23,7 +23,7 @@ func oAuthSuccess(auth *strava.AuthorizationResponse, w http.ResponseWriter, r *
 	userID := strconv.Itoa(int(auth.Athlete.Id))
 	logrus.WithField("USER TOKEN", userToken).Info("user token on oAuth success")
 	logrus.WithField("USER ID", userID).Info("user id on oAuth success")
-	url := "/logrus.n.html?oauth_token=" + userToken + "&userId=" + userID
+	url := "/login.html?oauth_token=" + userToken + "&userId=" + userID
 	http.Redirect(w, r, url, 301)
 
 	_, err := models.RegisterUser(auth)
