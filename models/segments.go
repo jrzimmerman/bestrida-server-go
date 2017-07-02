@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/strava/go.strava"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -41,11 +41,11 @@ func GetSegmentByID(id int64) (*Segment, error) {
 	var s Segment
 
 	if err := session.DB(name).C("segments").Find(bson.M{"_id": id}).One(&s); err != nil {
-		logrus.WithField("ID", id).Error("Unable to find segment with id")
+		log.WithField("ID", id).Error("Unable to find segment with id")
 		return nil, err
 	}
 
-	logrus.WithFields(map[string]interface{}{
+	log.WithFields(map[string]interface{}{
 		"NAME": s.Name,
 		"ID":   s.ID,
 	}).Info("Segment returned from DB")
@@ -80,7 +80,7 @@ func SaveSegment(s *strava.SegmentDetailed) (*Segment, error) {
 	}
 
 	if err := session.DB(name).C("segments").Insert(&segment); err != nil {
-		logrus.WithField("ID", segment.ID).Errorf("Unable to create segment:\n %v", err)
+		log.WithField("ID", segment.ID).Errorf("Unable to create segment:\n %v", err)
 		return nil, err
 	}
 
@@ -112,7 +112,7 @@ func (segment Segment) UpdateSegment(s *strava.SegmentDetailed) (*Segment, error
 	segment.UpdatedAt = time.Now()
 
 	if err := session.DB(name).C("segments").UpdateId(segment.ID, &segment); err != nil {
-		logrus.WithField("SEGMENT ID", segment.ID).Errorf("Unable to update segment:\n %v", err)
+		log.WithField("SEGMENT ID", segment.ID).Errorf("Unable to update segment:\n %v", err)
 		return nil, err
 	}
 

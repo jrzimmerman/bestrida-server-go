@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 	"github.com/strava/go.strava"
 )
@@ -41,7 +41,7 @@ func TestGetAthleteByIDFromStravaSuccess(t *testing.T) {
 		t.Errorf("unable to decode response: %s", err)
 	}
 
-	logrus.WithField("Athlete ID", a.Id).Info("Athlete returned from Strava")
+	log.WithField("Athlete ID", a.Id).Info("Athlete returned from Strava")
 
 	if a.Id != int64(id) {
 		t.Errorf("unexpected athlete")
@@ -113,7 +113,7 @@ func TestGetAthleteByIDFromStravaFailureURL(t *testing.T) {
 // 		t.Errorf("unable to decode response: %s", err)
 // 	}
 
-// 	logrus.Info("Athlete friends returned from Strava")
+// 	log.Info("Athlete friends returned from Strava")
 // }
 
 // func TestGetFriendsByUserIDFromStravaFailureURL(t *testing.T) {
@@ -181,7 +181,7 @@ func TestGetSegmentsByUserIDFromStravaSuccess(t *testing.T) {
 		t.Errorf("unable to decode response: %s", err)
 	}
 
-	logrus.Info("Athlete segments returned from Strava")
+	log.Info("Athlete segments returned from Strava")
 }
 
 // // TestGetSegmentsByUserIDFromStravaFailureURL will test retrieving a user from strava with a bad athlete ID

@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/models"
 	"github.com/pressly/chi"
-	strava "github.com/strava/go.strava"
+	"github.com/strava/go.strava"
 )
 
 // GetEffortsBySegmentIDFromStrava returns efforts by segment ID from Strava
@@ -18,15 +18,15 @@ func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		logrus.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(500, "unable to convert ID param")
+		log.WithField("ID", numID).Error("unable to convert ID param")
+		res.Render(http.StatusInternalServerError, "unable to convert ID param")
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
-		logrus.WithField("ID", numID).Error("unable to retrieve user from database")
-		res.Render(500, "unable to retrieve user from database")
+		log.WithField("ID", numID).Error("unable to retrieve user from database")
+		res.Render(http.StatusInternalServerError, "unable to retrieve user from database")
 		return
 	}
 	userID := int64(user.ID)
@@ -34,20 +34,20 @@ func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	segmentID := chi.URLParam(r, "segmentID")
 	numSegmentID, err := strconv.ParseInt(segmentID, 10, 64)
 	if err != nil {
-		logrus.WithField("Segment ID", numSegmentID).Debug("unable to convert Segment ID param")
-		res.Render(500, err)
+		log.WithField("Segment ID", numSegmentID).Debug("unable to convert Segment ID param")
+		res.Render(http.StatusInternalServerError, err)
 		return
 	}
 
 	// use our access token to grab generic segment info
 	client := strava.NewClient(user.Token)
 
-	logrus.Infof("Fetching segment %v info...", numSegmentID)
+	log.Infof("Fetching segment %v info...", numSegmentID)
 	efforts, err := strava.NewSegmentsService(client).ListEfforts(numSegmentID).AthleteId(userID).Do()
 	if err != nil {
-		res.Render(500, "Unable to retrieve segment efforts info")
+		res.Render(http.StatusInternalServerError, "Unable to retrieve segment efforts info")
 		return
 	}
 
-	res.Render(200, efforts)
+	res.Render(http.StatusOK, efforts)
 }

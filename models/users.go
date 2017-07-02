@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/strava/go.strava"
 )
 
@@ -54,11 +54,11 @@ func GetUserByID(id int64) (*User, error) {
 	var u User
 
 	if err := session.DB(name).C("users").FindId(id).One(&u); err != nil {
-		logrus.WithField("USER ID", id).Errorf("Unable to find user with id:\n%v", err)
+		log.WithField("USER ID", id).Errorf("Unable to find user with id:\n%v", err)
 		return nil, err
 	}
 
-	logrus.WithField("USER ID", u.ID).Infof("user found %d", u.ID)
+	log.WithField("USER ID", u.ID).Infof("user found %d", u.ID)
 
 	return &u, nil
 }
@@ -82,7 +82,7 @@ func CreateUser(auth *strava.AuthorizationResponse) (*User, error) {
 	}
 
 	if err := session.DB(name).C("users").Insert(&user); err != nil {
-		logrus.WithField("ID", user.ID).Errorf("Unable to create user with id:\n %v", err)
+		log.WithField("ID", user.ID).Errorf("Unable to create user with id:\n %v", err)
 		return nil, err
 	}
 
@@ -105,7 +105,7 @@ func (u User) UpdateUser(auth *strava.AuthorizationResponse) (*User, error) {
 	u.UpdatedAt = time.Now()
 
 	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
-		logrus.WithField("USER ID", u.ID).Errorf("Unable to update user:\n %v", err)
+		log.WithField("USER ID", u.ID).Errorf("Unable to update user:\n %v", err)
 		return nil, err
 	}
 
@@ -116,14 +116,14 @@ func (u User) UpdateUser(auth *strava.AuthorizationResponse) (*User, error) {
 func RegisterUser(auth *strava.AuthorizationResponse) (*User, error) {
 	u, err := GetUserByID(auth.Athlete.Id)
 	if err != nil {
-		logrus.WithField("ID", auth.Athlete.Id).Info("Unable to find user with id, creating user")
+		log.WithField("ID", auth.Athlete.Id).Info("Unable to find user with id, creating user")
 		user, err := CreateUser(auth)
 		if err != nil {
 			return nil, err
 		}
 		return user, nil
 	}
-	logrus.WithField("ID", u.ID).Info("Found user with id, updating user")
+	log.WithField("ID", u.ID).Info("Found user with id, updating user")
 	user, err := u.UpdateUser(auth)
 	if err != nil {
 		return nil, err
@@ -146,9 +146,9 @@ func (u User) UpdateAthlete(athlete *strava.AthleteDetailed) (*User, error) {
 	u.UpdatedAt = time.Now()
 
 	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
-		logrus.WithField("USER ID", u.ID).Errorf("Unable to update user:\n %v", err)
+		log.WithField("USER ID", u.ID).Errorf("Unable to update user:\n %v", err)
 		return nil, err
 	}
-	logrus.WithField("ATHLETE ID", u.ID).Infof("athlete %d updated", u.ID)
+	log.WithField("ATHLETE ID", u.ID).Infof("athlete %d updated", u.ID)
 	return &u, nil
 }

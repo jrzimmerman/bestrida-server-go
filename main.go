@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/handlers"
 	"github.com/jrzimmerman/bestrida-server-go/models"
 	"github.com/jrzimmerman/bestrida-server-go/utils"
@@ -30,7 +30,7 @@ func main() {
 	wg.Add(1)
 
 	go func() {
-		logrus.Printf("Listening on http://localhost:%s\n", port)
+		log.Infof("Listening on http://localhost:%s\n", port)
 
 		srv.ListenAndServe()
 		wg.Done()
@@ -49,20 +49,20 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	logrus.Println("\nShutting down the server...")
+	log.Println("\nShutting down the server...")
 
 	// Attempt the graceful shutdown by closing the listener and
 	// completing all inflight requests.
 	if err := srv.Shutdown(ctx); err != nil {
-		logrus.Debugf("shutdown : Graceful shutdown did not complete in %v : %v", timeout, err)
+		log.Debugf("shutdown : Graceful shutdown did not complete in %v : %v", timeout, err)
 
 		// Looks like we timedout on the graceful shutdown. Kill it hard.
 		if err := srv.Close(); err != nil {
-			logrus.WithError(err).Errorf("shutdown : Error killing server : %v", err)
+			log.WithError(err).Errorf("shutdown : Error killing server : %v", err)
 		}
 	}
 
 	// Wait for the listener to report it is closed.
 	wg.Wait()
-	logrus.Println("Server gracefully stopped")
+	log.Println("Server gracefully stopped")
 }

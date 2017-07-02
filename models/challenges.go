@@ -3,12 +3,12 @@ package models
 import (
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Effort struct handles the MongoDB schema for each users challenge effort
-type Effort struct {
+// Opponent struct handles the database schema for each users challenge effort
+type Opponent struct {
 	ID               int     `json:"id"`
 	Name             string  `json:"name"`
 	Photo            string  `json:"photo"`
@@ -20,54 +20,146 @@ type Effort struct {
 	MaxHeartRate     int     `json:"maxHeartRate"`
 }
 
-// Challenge struct handles the MongoDB schema for a challenge
+// Challenge struct handles the database schema for a challenge
 type Challenge struct {
 	ID         bson.ObjectId `bson:"_id,omitempty" json:"id"`
-	Segment    Segment       `bson:"segment" json:"segment"`
-	Challenger Effort        `bson:"challenger" json:"challenger"`
-	Challengee Effort        `bson:"challengee" json:"challengee"`
+	Segment    *Segment      `bson:"segment" json:"segment,omitempty"`
+	Challenger *Opponent     `bson:"challenger" json:"challenger,omitempty"`
+	Challengee *Opponent     `bson:"challengee" json:"challengee,omitempty"`
 	Status     string        `bson:"status" json:"status"`
-	Created    time.Time     `bson:"created" json:"created"`
-	Expires    time.Time     `bson:"expires" json:"expires"`
-	Completed  time.Time     `bson:"completed" json:"completed"`
+	Created    *time.Time    `bson:"created" json:"created,omitempty"`
+	Expires    *time.Time    `bson:"expires" json:"expires,omitempty"`
+	Completed  *time.Time    `bson:"completed" json:"completed,omitempty"`
 	Expired    bool          `bson:"expired" json:"expired"`
-	WinnerID   int           `bson:"winnerId" json:"winnerId"`
-	WinnerName string        `bson:"winnerName" json:"winnerName"`
-	LoserID    int           `bson:"loserId" json:"loserId"`
-	LoserName  string        `bson:"loserName" json:"loserName"`
-	CreatedAt  time.Time     `bson:"createdAt" json:"createdAt,omitempty"`
-	UpdatedAt  time.Time     `bson:"updatedAt" json:"updatedAt,omitempty"`
+	WinnerID   *int          `bson:"winnerId" json:"winnerId,omitempty"`
+	WinnerName *string       `bson:"winnerName" json:"winnerName,omitempty"`
+	LoserID    *int          `bson:"loserId" json:"loserId,omitempty"`
+	LoserName  *string       `bson:"loserName" json:"loserName,omitempty"`
+	CreatedAt  time.Time     `bson:"createdAt" json:"createdAt"`
+	UpdatedAt  time.Time     `bson:"updatedAt" json:"updatedAt"`
 	DeletedAt  *time.Time    `bson:"deletedAt" json:"deletedAt,omitempty"`
 }
 
-// GetChallengeByID gets a single stored challenge from MongoDB
+// GetChallengeByID gets a single stored challenge from database
 func GetChallengeByID(id bson.ObjectId) (*Challenge, error) {
 	var c Challenge
 
 	if err := session.DB(name).C("challenges").Find(bson.M{"_id": id}).One(&c); err != nil {
-		logrus.WithField("ID", id).Error("Unable to find challenge with id in database")
+		log.WithField("ID", id).Error("Unable to find challenge with id in database")
 		return nil, err
 	}
 
 	return &c, nil
 }
 
-// CreateChallenge creates a new challenge in MongoDB
+// CreateChallenge creates a new challenge in database
 func CreateChallenge(c Challenge) error {
 	if err := session.DB(name).C("challenges").Insert(c); err != nil {
-		logrus.Errorf("Unable to create a new challenge:\n %v", err)
+		log.Errorf("Unable to create a new challenge:\n %v", err)
 		return err
 	}
-	logrus.Printf("Challenge successfully created")
+	log.Infof("Challenge successfully created")
 	return nil
 }
 
-// RemoveChallenge removes a challenge from MongoDB
+// RemoveChallenge removes a challenge from database
 func RemoveChallenge(id bson.ObjectId) error {
 	if err := session.DB(name).C("challenges").RemoveId(id); err != nil {
-		logrus.WithField("ID", id).Error("Unable to find challenge with id in database")
+		log.WithField("ID", id).Error("Unable to find challenge with id in database")
 		return err
 	}
-	logrus.Printf("Challenge successfully removed: %v", id)
+	log.Infof("Challenge successfully removed: %v", id)
 	return nil
 }
+
+// UpdateChallengeStatus updates the challenge
+func UpdateChallengeStatus(id bson.ObjectId, status string, updateTime time.Time) error {
+	if err := session.DB(name).C("challenges").Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"status": status, "updatedAt": updateTime}}); err != nil {
+		log.WithField("ID", id).Errorf("Unable to update challenge with id: %v in database", id)
+		return err
+	}
+	log.Infof("Challenge successfully updated: %v", id)
+	return nil
+}
+
+func GetPendingChallenges(userId int) ([]Challenge, error) {
+	var challenges []Challenge
+
+	// results, err := session.DB(name).C("challenges").Find(bson.M{
+	// 	"$or": []bson.M{
+	// 		bson.M{challengeeId: userId, status: "pending"},
+	// 		bson.M{challengerId: userId, status: "pending"},
+	// 	},
+	// }).Sort("expires")
+	// if err != nil {
+	// 	log.WithField("ID", id).Error("Unable to find challenge with id in database")
+	// 	return nil, err
+	// }
+
+	return challenges, nil
+}
+
+func GetActiveChallenges() ([]Challenge, error) {
+	var challenges []Challenge
+	return challenges, nil
+}
+
+func GetCompletedChallenges() ([]Challenge, error) {
+	var challenges []Challenge
+	return challenges, nil
+}
+
+// module.exports.getChallenges = function (user, status, callback) {
+//   if (!user) callback('No user defined');
+//   if (!status) callback('No status defined');
+//   if (status === 'complete') {
+//     Challenge
+//     .find({
+//       $or: [
+//         { challengerId: user, challengerCompleted: true },
+//         { challengeeId: user, challengeeCompleted: true }
+//       ],
+//     })
+//     .sort([['updatedAt','descending'],['expires','descending']])
+//     .exec(function (err, challenges) {
+//       if (err) {
+//         callback('error finding completed challenges: ' + err);
+//       } else {
+//         callback(err, challenges);
+//       }
+//     });
+//   } else if (status === 'active') {
+//     Challenge
+//     .find({
+//       $or: [
+//         { challengerId: user, challengerCompleted: false, status: status },
+//         { challengeeId: user, challengeeCompleted: false, status: status }
+//       ]
+//     })
+//     .sort({ expires: 'ascending' })
+//     .exec(function (err, challenges) {
+//       if (err) {
+//         callback('error finding active challenges: ' + err);
+//       } else {
+//         callback(err, challenges);
+//       }
+//     });
+//   } else if (status === 'pending') {
+//     Challenge.find({
+//       $or: [
+//         { challengeeId: user, status: 'pending' },
+//         { challengerId: user, status: 'pending' }
+//       ]
+//     })
+//     .sort({ expires: 'ascending' })
+//     .exec(function (err, challenges) {
+//       if (err) {
+//         callback('error finding pending challenges: ' + err);
+//       } else {
+//         callback(err, challenges);
+//       }
+//     });
+//   } else {
+//     callback('Error getting challenges');
+//   }
+// };

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/pressly/chi"
 
 	"github.com/jrzimmerman/bestrida-server-go/models"
@@ -18,18 +18,18 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		logrus.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(500, "unable to convert ID param")
+		log.WithField("ID", numID).Error("unable to convert ID param")
+		res.Render(http.StatusInternalServerError, "unable to convert ID param")
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
-		logrus.WithField("ID", numID).Error("unable to get user by ID")
-		res.Render(500, "unable to get user by ID")
+		log.WithField("ID", numID).Error("unable to get user by ID from database")
+		res.Render(http.StatusInternalServerError, "unable to get user by ID from database")
 		return
 	}
 
-	logrus.WithField("USER ID", user.ID).Infof("user %d found", user.ID)
-	res.Render(200, user)
+	log.WithField("USER ID", user.ID).Infof("user %d found", user.ID)
+	res.Render(http.StatusOK, user)
 }

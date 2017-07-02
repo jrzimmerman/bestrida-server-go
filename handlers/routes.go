@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/utils"
 	"github.com/pressly/chi"
 	"github.com/strava/go.strava"
@@ -25,11 +25,11 @@ func API() (mux *chi.Mux) {
 	path, err := authenticator.CallbackPath()
 	if err != nil {
 		// possibly that the callback url set above is invalid
-		logrus.Error(err)
+		log.Errorf("unable to set strava callback path: \n %v", err)
 	}
 	clientIDInt, err := strconv.Atoi(clientID)
 	if err != nil {
-		logrus.Error(err)
+		log.Errorf("unable to convert strava client id to int: \n %v", err)
 	}
 	strava.ClientId = clientIDInt
 	strava.ClientSecret = clientSecret
@@ -72,20 +72,21 @@ func API() (mux *chi.Mux) {
 
 		r.Route("/challenges", func(r chi.Router) {
 			r.Get("/:id", GetChallengeByID)
-			r.Post("/accept", GetChallengeByID)
-			r.Post("/decline", GetChallengeByID)
-			r.Post("/complete", GetChallengeByID)
+			r.Put("/accept", AcceptChallengeByID)
+			r.Put("/decline", GetChallengeByID)
+			r.Put("/complete", GetChallengeByID)
+			r.Post("/create", CreateChallenge)
 
 			r.Route("/pending", func(r chi.Router) {
-				r.Get("/:id", GetChallengeByID)
+				r.Get("/:id", GetPendingChallengesByUserID)
 			})
 
 			r.Route("/active", func(r chi.Router) {
-				r.Get("/:id", GetChallengeByID)
+				r.Get("/:id", GetActiveChallengesByUserID)
 			})
 
 			r.Route("/completed", func(r chi.Router) {
-				r.Get("/:id", GetChallengeByID)
+				r.Get("/:id", GetCompletedChallengesByUserID)
 			})
 		})
 
