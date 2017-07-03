@@ -184,8 +184,8 @@ func GetPendingChallengesByUserID(w http.ResponseWriter, r *http.Request) {
 
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(http.StatusBadRequest, map[string]interface{}{"error": "unable to convert ID param"})
+		log.WithField("ID", numID).Error("unable to convert user ID param")
+		res.Render(http.StatusBadRequest, map[string]interface{}{"error": "unable to convert user ID param"})
 		return
 	}
 	challenges, err := models.GetPendingChallenges(numID)
@@ -205,8 +205,8 @@ func GetActiveChallengesByUserID(w http.ResponseWriter, r *http.Request) {
 
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(http.StatusBadRequest, map[string]interface{}{"error": "unable to convert ID param"})
+		log.WithField("ID", numID).Error("unable to convert user ID param")
+		res.Render(http.StatusBadRequest, map[string]interface{}{"error": "unable to convert user ID param"})
 		return
 	}
 	challenges, err := models.GetActiveChallenges(numID)
@@ -221,5 +221,20 @@ func GetActiveChallengesByUserID(w http.ResponseWriter, r *http.Request) {
 // GetCompletedChallengesByUserID gets all completed challenges by user ID
 func GetCompletedChallengesByUserID(w http.ResponseWriter, r *http.Request) {
 	res := New(w)
-	res.Render(http.StatusOK, "completed challenges")
+
+	id := chi.URLParam(r, "id")
+
+	numID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		log.WithField("ID", numID).Error("unable to convert user ID param")
+		res.Render(http.StatusBadRequest, map[string]interface{}{"error": "unable to convert user ID param"})
+		return
+	}
+	challenges, err := models.GetCompletedChallenges(numID)
+	if err != nil {
+		log.WithField("ID", numID).Error("Could not retrieve active challenges from database")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Could not retrieve active challenges from database"})
+		return
+	}
+	res.Render(http.StatusOK, challenges)
 }
