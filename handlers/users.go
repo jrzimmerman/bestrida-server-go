@@ -19,14 +19,14 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(http.StatusInternalServerError, "unable to convert ID param")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to convert ID param"})
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to get user by ID from database")
-		res.Render(http.StatusInternalServerError, "unable to get user by ID from database")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to get user by ID from database"})
 		return
 	}
 

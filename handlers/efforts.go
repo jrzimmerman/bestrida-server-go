@@ -19,14 +19,14 @@ func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(http.StatusInternalServerError, "unable to convert ID param")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to convert ID param"})
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		res.Render(http.StatusInternalServerError, "unable to retrieve user from database")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to retrieve user from database"})
 		return
 	}
 	userID := int64(user.ID)
@@ -35,7 +35,7 @@ func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	numSegmentID, err := strconv.ParseInt(segmentID, 10, 64)
 	if err != nil {
 		log.WithField("Segment ID", numSegmentID).Debug("unable to convert Segment ID param")
-		res.Render(http.StatusInternalServerError, err)
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to convert Segment ID param"})
 		return
 	}
 
@@ -45,7 +45,7 @@ func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Fetching segment %v info...", numSegmentID)
 	efforts, err := strava.NewSegmentsService(client).ListEfforts(numSegmentID).AthleteId(userID).Do()
 	if err != nil {
-		res.Render(http.StatusInternalServerError, "Unable to retrieve segment efforts info")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Unable to retrieve segment efforts info"})
 		return
 	}
 

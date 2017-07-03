@@ -101,9 +101,21 @@ func GetPendingChallenges(userID int64) (*[]Challenge, error) {
 }
 
 // GetActiveChallenges get active challenges by user ID from database
-func GetActiveChallenges(userID int64) ([]Challenge, error) {
+func GetActiveChallenges(userID int64) (*[]Challenge, error) {
 	var challenges []Challenge
-	return challenges, nil
+	err := session.DB(name).C("challenges").Find(bson.M{
+		"$or": []bson.M{
+			bson.M{"challengee.id": userID, "challengee.completed": false, "status": "active"},
+			bson.M{"challenger.id": userID, "challenger.completed": false, "status": "active"},
+		},
+	}).Sort("expires").All(&challenges)
+	if err != nil {
+		log.WithField("ID", userID).Errorf("Unable to find active challenges for user %d in database", userID)
+		return nil, err
+	}
+	log.Infof("found %d active challenges", len(challenges))
+
+	return &challenges, nil
 }
 
 // GetCompletedChallenges get completed challenges by user ID from database

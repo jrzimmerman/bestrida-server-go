@@ -18,16 +18,16 @@ func GetSegmentByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.WithField("id", numID).Debug("unable to convert ID param")
-		res.Render(http.StatusInternalServerError, err)
+		log.WithField("id", numID).Debug("unable to convert segment ID param")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to convert segment ID param"})
 		return
 	}
 
 	log.WithField("id", numID).Info("looking for segment by ID")
 	segment, err := models.GetSegmentByID(numID)
 	if err != nil {
-		log.WithField("id", numID).Debug("unable to get segment by ID")
-		res.Render(http.StatusInternalServerError, err)
+		log.WithField("id", numID).Debug("unable to retrieve segment by ID from database")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to retrieve segment by ID from database"})
 		return
 	}
 
@@ -43,7 +43,7 @@ func GetSegmentByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert segment ID param")
-		res.Render(http.StatusInternalServerError, "unable to convert segment ID param")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to convert segment ID param"})
 		return
 	}
 
@@ -53,7 +53,7 @@ func GetSegmentByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	log.Infof("Fetching segment %v info from strava...", id)
 	segment, err := strava.NewSegmentsService(client).Get(numID).Do()
 	if err != nil {
-		res.Render(http.StatusInternalServerError, "Unable to retrieve segment info")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Unable to retrieve segment info"})
 		return
 	}
 	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)

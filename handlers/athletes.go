@@ -26,7 +26,7 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		res.Render(http.StatusInternalServerError, "unable to retrieve user from database")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to retrieve user from database"})
 		return
 	}
 
@@ -36,7 +36,7 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// retrieve a list of users segments from Strava API
 	athlete, err := strava.NewCurrentAthleteService(client).Get().Do()
 	if err != nil {
-		res.Render(http.StatusInternalServerError, "Unable to retrieve athlete info")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Unable to retrieve athlete info"})
 		return
 	}
 
@@ -58,14 +58,14 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(http.StatusInternalServerError, "unable to convert ID param")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to convert ID param"})
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		res.Render(http.StatusInternalServerError, "unable to retrieve user from database")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to retrieve user from database"})
 		return
 	}
 
@@ -75,7 +75,7 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// retrieve a list of users friends from Strava API
 	friends, err := strava.NewCurrentAthleteService(client).ListFriends().Do()
 	if err != nil {
-		res.Render(http.StatusInternalServerError, "Unable to retrieve athlete friends")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Unable to retrieve athlete friends"})
 		return
 	}
 
@@ -99,7 +99,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("USER ID", numID).Error("unable to convert USER ID param")
-		res.Render(http.StatusInternalServerError, "unable to convert USER ID param")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to convert USER ID param"})
 		return
 	}
 
@@ -117,7 +117,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	log.Info("Fetching athlete activity summary info...\n")
 	activities, err := strava.NewCurrentAthleteService(client).ListActivities().Page(1).PerPage(200).Do()
 	if err != nil {
-		res.Render(http.StatusInternalServerError, "Unable to retrieve athlete activities summary")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Unable to retrieve athlete activities summary"})
 		return
 	}
 
