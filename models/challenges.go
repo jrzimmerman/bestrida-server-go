@@ -9,15 +9,15 @@ import (
 
 // Opponent struct handles the database schema for each users challenge effort
 type Opponent struct {
-	ID               int     `json:"id"`
-	Name             string  `json:"name"`
-	Photo            string  `json:"photo"`
-	Time             int     `json:"time"`
-	Completed        bool    `json:"completed"`
-	AverageCadence   float32 `json:"averageCadence"`
-	AverageWatts     float32 `json:"averageWatts"`
-	AverageHeartRate float32 `json:"averageHeartRate"`
-	MaxHeartRate     int     `json:"maxHeartRate"`
+	ID               int64    `json:"id"`
+	Name             string   `json:"name"`
+	Photo            string   `json:"photo"`
+	Completed        bool     `json:"completed"`
+	Time             *int     `json:"time,omitempty"`
+	AverageCadence   *float32 `json:"averageCadence,omitempty"`
+	AverageWatts     *float32 `json:"averageWatts,omitempty"`
+	AverageHeartRate *float32 `json:"averageHeartRate,omitempty"`
+	MaxHeartRate     *int     `json:"maxHeartRate,omitempty"`
 }
 
 // Challenge struct handles the database schema for a challenge
@@ -82,29 +82,32 @@ func UpdateChallengeStatus(id bson.ObjectId, status string, updateTime time.Time
 	return nil
 }
 
-func GetPendingChallenges(userId int) ([]Challenge, error) {
+// GetPendingChallenges get pending challenges by user ID from database
+func GetPendingChallenges(userID int64) (*[]Challenge, error) {
 	var challenges []Challenge
+	err := session.DB(name).C("challenges").Find(bson.M{
+		"$or": []bson.M{
+			bson.M{"challengee.id": userID, "status": "pending"},
+			bson.M{"challenger.id": userID, "status": "pending"},
+		},
+	}).Sort("expires").All(&challenges)
+	if err != nil {
+		log.WithField("ID", userID).Errorf("Unable to find pending challenges for user %d in database", userID)
+		return nil, err
+	}
+	log.Infof("found %d pending challenges", len(challenges))
 
-	// results, err := session.DB(name).C("challenges").Find(bson.M{
-	// 	"$or": []bson.M{
-	// 		bson.M{challengeeId: userId, status: "pending"},
-	// 		bson.M{challengerId: userId, status: "pending"},
-	// 	},
-	// }).Sort("expires")
-	// if err != nil {
-	// 	log.WithField("ID", id).Error("Unable to find challenge with id in database")
-	// 	return nil, err
-	// }
+	return &challenges, nil
+}
 
+// GetActiveChallenges get active challenges by user ID from database
+func GetActiveChallenges(userID int64) ([]Challenge, error) {
+	var challenges []Challenge
 	return challenges, nil
 }
 
-func GetActiveChallenges() ([]Challenge, error) {
-	var challenges []Challenge
-	return challenges, nil
-}
-
-func GetCompletedChallenges() ([]Challenge, error) {
+// GetCompletedChallenges get completed challenges by user ID from database
+func GetCompletedChallenges(userID int64) ([]Challenge, error) {
 	var challenges []Challenge
 	return challenges, nil
 }
