@@ -9,7 +9,7 @@ import (
 
 // Friend struct handles the MongoDB schema for each users friends
 type Friend struct {
-	ID             int    `bson:"id" json:"id"`
+	ID             int    `bson:"_id" json:"id"`
 	Username       string `bson:"username" json:"username"`
 	FirstName      string `bson:"firstname" json:"firstName"`
 	LastName       string `bson:"lastname" json:"lastName"`
@@ -22,7 +22,7 @@ type Friend struct {
 
 // UserSegment struct handles the MongoDB schema for each users segments
 type UserSegment struct {
-	ID    int    `bson:"_id" json:"id"`
+	ID    int64  `bson:"_id" json:"id"`
 	Name  string `bson:"name" json:"name"`
 	Count int    `bson:"count" json:"count"`
 }
@@ -151,4 +151,9 @@ func (u User) UpdateAthlete(athlete *strava.AthleteDetailed) (*User, error) {
 	}
 	log.WithField("ATHLETE ID", u.ID).Infof("athlete %d updated", u.ID)
 	return &u, nil
+}
+
+// SaveUserSegments save user segments
+func (u User) SaveUserSegments(segments []*UserSegment) error {
+	return nil
 }

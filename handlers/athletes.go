@@ -93,7 +93,8 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
-	var segments []*models.Segment
+	var segments []models.Segment
+	var userSegmentSlice []*models.UserSegment
 
 	// convert user id string from url param to number
 	numID, err := strconv.ParseInt(id, 10, 64)
@@ -111,6 +112,11 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userSegments := make(map[int64]models.UserSegment, 0)
+	for _, segment := range user.Segments {
+		userSegments[segment.ID] = segment
+	}
+
 	// create new strava client with user token
 	client := strava.NewClient(user.Token)
 
@@ -122,7 +128,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create a segment map to return only unique segments
-	segmentMap := make(map[int64]*models.Segment, 0)
+	segmentMap := make(map[int64]models.Segment, 0)
 
 	// range over activity summary to get activity details
 	// the activity summary does not have segment efforts to view recent segments
@@ -175,19 +181,51 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 				log.WithField("SEGMENT ID", segment.ID).Infof("retrieved segment %d detail from strava", segment.ID)
-				segmentMap[segment.ID] = segment
+				// add segment to segmentMap if not found
+				if _, ok := segmentMap[segment.ID]; !ok {
+					segmentMap[segment.ID] = *segment
+				}
+				// add segment to userSegments if not found
+				if _, ok := userSegments[segment.ID]; !ok {
+					userSegments[segment.ID] = models.UserSegment{
+						ID:    segment.ID,
+						Name:  segment.Name,
+						Count: 0,
+					}
+				}
 			} else {
 				// segment was found and returned
-				segmentMap[segment.ID] = segment
+				// add segment to segmentMap if not found
+				if _, ok := segmentMap[segment.ID]; !ok {
+					segmentMap[segment.ID] = *segment
+				}
+				// add segment to userSegments if not found
+				if _, ok := userSegments[segment.ID]; !ok {
+					userSegments[segment.ID] = models.UserSegment{
+						ID:    segment.ID,
+						Name:  segment.Name,
+						Count: 0,
+					}
+				}
 			}
 		}
 	}
-	// store segment map for user
 
+	for _, userSegment := range userSegments {
+		userSegmentSlice = append(userSegmentSlice, &userSegment)
+	}
+
+	// store segment map for user
+	err = user.SaveUserSegments(userSegmentSlice)
+	if err != nil {
+		log.WithError(err).Errorf("unable to save user segments for user %d to database", user.ID)
+		return
+	}
 	// range over segmentMap to creake segments array
 	for _, segment := range segmentMap {
 		segments = append(segments, segment)
 	}
+
 	log.Infof("found %d unique segments", len(segments))
 	res.Render(http.StatusOK, segments)
 }
