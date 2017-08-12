@@ -3,11 +3,14 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/go-chi/chi"
 	"github.com/jrzimmerman/bestrida-server-go/utils"
-	"github.com/pressly/chi"
+	log "github.com/sirupsen/logrus"
 	"github.com/strava/go.strava"
 )
 
@@ -19,6 +22,26 @@ var clientID = utils.GetEnvString("STRAVA_CLIENT_ID")
 var clientSecret = utils.GetEnvString("STRAVA_CLIENT_SECRET")
 var accessToken = utils.GetEnvString("STRAVA_ACCESS_TOKEN")
 var port = utils.GetEnvString("PORT")
+
+// FileServer conveniently sets up a http.FileServer handler to serve
+// static files from a http.FileSystem.
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit URL parameters.")
+	}
+
+	fs := http.StripPrefix(path, http.FileServer(root))
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fs.ServeHTTP(w, r)
+	}))
+}
 
 // API initializes all endpoints
 func API() (mux *chi.Mux) {
@@ -38,16 +61,19 @@ func API() (mux *chi.Mux) {
 	mux.Use(CORS)
 
 	mux.HandleFunc(path, authenticator.HandlerFunc(oAuthSuccess, oAuthFailure))
-	mux.FileServer("/", http.Dir("public"))
+
+	workDir, _ := os.Getwd()
+	publicDir := filepath.Join(workDir, "public")
+	FileServer(mux, "/", http.Dir(publicDir))
 
 	mux.Route("/api", func(r chi.Router) {
 		r.Get("/health", GetHealthCheck)
 		r.Route("/users", func(r chi.Router) {
-			r.Route("/:id", func(r chi.Router) {
+			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", GetUserByID)
 				r.Route("/challenges", func(r chi.Router) {
 					r.Get("/", GetChallengeByID)
-					r.Route("/:id", func(r chi.Router) {
+					r.Route("/{id}", func(r chi.Router) {
 						r.Get("/", GetChallengeByID)
 						r.Get("/pending", GetChallengeByID)
 						r.Get("/active", GetChallengeByID)
@@ -58,41 +84,41 @@ func API() (mux *chi.Mux) {
 		})
 
 		r.Route("/segments", func(r chi.Router) {
-			r.Route("/:id", func(r chi.Router) {
+			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", GetSegmentByID)
 				r.Get("/strava", GetSegmentByIDFromStrava)
 			})
 			r.Route("/efforts", func(r chi.Router) {
-				r.Get("/:id", GetEffortsBySegmentIDFromStrava)
+				r.Get("/{id}", GetEffortsBySegmentIDFromStrava)
 			})
 		})
 
 		r.Route("/efforts", func(r chi.Router) {
-			r.Get("/:id", GetEffortsBySegmentIDFromStrava)
+			r.Get("/{id}", GetEffortsBySegmentIDFromStrava)
 		})
 
 		r.Route("/challenges", func(r chi.Router) {
-			r.Get("/:id", GetChallengeByID)
+			r.Get("/{id}", GetChallengeByID)
 			r.Put("/accept", AcceptChallengeByID)
 			r.Put("/decline", DeclineChallengeByID)
 			r.Put("/complete", GetChallengeByID)
 			r.Post("/create", CreateChallenge)
 
 			r.Route("/pending", func(r chi.Router) {
-				r.Get("/:id", GetPendingChallengesByUserID)
+				r.Get("/{id}", GetPendingChallengesByUserID)
 			})
 
 			r.Route("/active", func(r chi.Router) {
-				r.Get("/:id", GetActiveChallengesByUserID)
+				r.Get("/{id}", GetActiveChallengesByUserID)
 			})
 
 			r.Route("/completed", func(r chi.Router) {
-				r.Get("/:id", GetCompletedChallengesByUserID)
+				r.Get("/{id}", GetCompletedChallengesByUserID)
 			})
 		})
 
 		r.Route("/athletes", func(r chi.Router) {
-			r.Route("/:id", func(r chi.Router) {
+			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", GetAthleteByIDFromStrava)
 				r.Get("/friends", GetFriendsByUserIDFromStrava)
 				r.Get("/segments", GetSegmentsByUserIDFromStrava)

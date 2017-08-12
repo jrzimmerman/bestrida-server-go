@@ -4,11 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/pressly/chi"
-	"github.com/strava/go.strava"
-
+	"github.com/go-chi/chi"
 	"github.com/jrzimmerman/bestrida-server-go/models"
+	log "github.com/sirupsen/logrus"
+	"github.com/strava/go.strava"
 )
 
 // GetSegmentByID returns segment by ID from the database

@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // GetHealthCheck returns response for health check

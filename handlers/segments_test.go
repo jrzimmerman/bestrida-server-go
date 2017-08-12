@@ -8,14 +8,14 @@ import (
 	"strconv"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/go-chi/chi"
 	"github.com/jrzimmerman/bestrida-server-go/models"
-	"github.com/pressly/chi"
+	log "github.com/sirupsen/logrus"
 )
 
 func TestGetSegmentByIDSuccess(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetSegmentByID)
+	r.Get("/{id}", GetSegmentByID)
 	server := httptest.NewServer(r)
 
 	id := 2539276
@@ -49,7 +49,7 @@ func TestGetSegmentByIDSuccess(t *testing.T) {
 
 func TestGetSegmentByIDFailureID(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetSegmentByID)
+	r.Get("/{id}", GetSegmentByID)
 	server := httptest.NewServer(r)
 
 	id := 0
@@ -71,7 +71,7 @@ func TestGetSegmentByIDFailureID(t *testing.T) {
 
 func TestGetSegmentByIDFailureInput(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetSegmentByID)
+	r.Get("/{id}", GetSegmentByID)
 	server := httptest.NewServer(r)
 
 	id := "test"

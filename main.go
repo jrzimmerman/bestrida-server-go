@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/handlers"
 	"github.com/jrzimmerman/bestrida-server-go/models"
 	"github.com/jrzimmerman/bestrida-server-go/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {

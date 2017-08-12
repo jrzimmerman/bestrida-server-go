@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/go-chi/chi"
 	"github.com/jrzimmerman/bestrida-server-go/models"
-	"github.com/pressly/chi"
+	log "github.com/sirupsen/logrus"
 	"github.com/strava/go.strava"
 )
 

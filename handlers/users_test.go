@@ -8,14 +8,14 @@ import (
 	"strconv"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/go-chi/chi"
 	"github.com/jrzimmerman/bestrida-server-go/models"
-	"github.com/pressly/chi"
+	log "github.com/sirupsen/logrus"
 )
 
 func TestGetUserByIDSuccess(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetUserByID)
+	r.Get("/{id}", GetUserByID)
 	server := httptest.NewServer(r)
 
 	id := 17198619
@@ -49,7 +49,7 @@ func TestGetUserByIDSuccess(t *testing.T) {
 
 func TestGetUserByIDFailureID(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetUserByID)
+	r.Get("/{id}", GetUserByID)
 	server := httptest.NewServer(r)
 
 	id := 0
@@ -71,7 +71,7 @@ func TestGetUserByIDFailureID(t *testing.T) {
 
 func TestGetUserByIDFailureName(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetUserByID)
+	r.Get("/{id}", GetUserByID)
 	server := httptest.NewServer(r)
 
 	id := "fred"

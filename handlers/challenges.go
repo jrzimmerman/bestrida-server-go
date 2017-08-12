@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/jrzimmerman/bestrida-server-go/models"

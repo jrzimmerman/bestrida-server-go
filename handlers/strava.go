@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/models"
+	log "github.com/sirupsen/logrus"
 	"github.com/strava/go.strava"
 )
 

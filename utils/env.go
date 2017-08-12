@@ -3,7 +3,7 @@ package utils
 import (
 	"os"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // GetEnvString will check for the environment variable, and if found return the string

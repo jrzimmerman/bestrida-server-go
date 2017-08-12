@@ -8,15 +8,15 @@ import (
 	"strconv"
 	"testing"
 
-	log "github.com/Sirupsen/logrus"
-	"github.com/pressly/chi"
+	"github.com/go-chi/chi"
+	log "github.com/sirupsen/logrus"
 	"github.com/strava/go.strava"
 )
 
 // TestGetAthleteByIDFromStravaSuccess retrieves the athlete by ID from Strava
 func TestGetAthleteByIDFromStravaSuccess(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetAthleteByIDFromStrava)
+	r.Get("/{id}", GetAthleteByIDFromStrava)
 	server := httptest.NewServer(r)
 
 	id := 17198619
@@ -50,7 +50,7 @@ func TestGetAthleteByIDFromStravaSuccess(t *testing.T) {
 
 func TestGetAthleteByIDFromStravaFailureURL(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetAthleteByIDFromStrava)
+	r.Get("/{id}", GetAthleteByIDFromStrava)
 	server := httptest.NewServer(r)
 
 	id := "fred"
@@ -156,7 +156,7 @@ func TestGetAthleteByIDFromStravaFailureURL(t *testing.T) {
 
 func TestGetSegmentsByUserIDFromStravaSuccess(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetSegmentsByUserIDFromStrava)
+	r.Get("/{id}", GetSegmentsByUserIDFromStrava)
 	server := httptest.NewServer(r)
 
 	id := 17198619

@@ -7,17 +7,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gopkg.in/mgo.v2/bson"
-
-	log "github.com/Sirupsen/logrus"
+	"github.com/go-chi/chi"
 	"github.com/jrzimmerman/bestrida-server-go/models"
-	"github.com/pressly/chi"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // TestGetChallengeByIDSuccess tests to successfully get a challenge by ID from the database
 func TestGetChallengeByIDSuccess(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetChallengeByID)
+	r.Get("/{id}", GetChallengeByID)
 	server := httptest.NewServer(r)
 
 	id := "57be4f7ef7fb96130084f0b2"
@@ -51,7 +50,7 @@ func TestGetChallengeByIDSuccess(t *testing.T) {
 
 func TestGetChallengeByIDFailureID(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetChallengeByID)
+	r.Get("/{id}", GetChallengeByID)
 	server := httptest.NewServer(r)
 
 	id := "57fe7835bdb0181b8cfe0510"
@@ -73,7 +72,7 @@ func TestGetChallengeByIDFailureID(t *testing.T) {
 
 func TestGetChallengeByIDFailureString(t *testing.T) {
 	r := chi.NewRouter()
-	r.Get("/:id", GetChallengeByID)
+	r.Get("/{id}", GetChallengeByID)
 	server := httptest.NewServer(r)
 
 	id := "bsonID"

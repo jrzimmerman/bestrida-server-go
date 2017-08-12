@@ -3,8 +3,8 @@ package models
 import (
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/jrzimmerman/bestrida-server-go/utils"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/mgo.v2"
 )
 
