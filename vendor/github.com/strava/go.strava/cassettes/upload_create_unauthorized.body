@@ -1,1 +1,0 @@
-{"message":"Authorization Error","errors":[{"resource":"AccessToken","field":"write_permission","code":"missing"}]}

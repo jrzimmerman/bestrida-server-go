@@ -4,7 +4,6 @@ go:
   - 1.8.x
 
 before_install:
-  - rm -rf vendor
   - go get -t -v ./...
 
 script:
