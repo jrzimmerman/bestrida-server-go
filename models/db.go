@@ -17,6 +17,11 @@ var password = utils.GetEnvString("DB_PASSWORD")
 
 // Create new MongoDB session on init
 func init() {
+	Open()
+}
+
+// Open creates a new MongoDB session
+func Open() {
 	// We need this object to establish a session to our MongoDB.
 	dbInfo := &mgo.DialInfo{
 		Addrs:    []string{host},
