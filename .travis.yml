@@ -3,6 +3,9 @@ sudo: false
 go:
   - 1.8.x
 
+before_install:
+  - go get -t -v ./...
+
 script:
   - ./test.sh
 
