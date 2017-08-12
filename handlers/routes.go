@@ -41,6 +41,7 @@ func API() (mux *chi.Mux) {
 	mux.FileServer("/", http.Dir("public"))
 
 	mux.Route("/api", func(r chi.Router) {
+		r.Get("/health", GetHealthCheck)
 		r.Route("/users", func(r chi.Router) {
 			r.Route("/:id", func(r chi.Router) {
 				r.Get("/", GetUserByID)
