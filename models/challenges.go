@@ -82,6 +82,24 @@ func UpdateChallengeStatus(id bson.ObjectId, status string, updateTime time.Time
 	return nil
 }
 
+// GetAllChallenges get all challenges for a user from database
+func GetAllChallenges(userID int64) (*[]Challenge, error) {
+	var challenges []Challenge
+	err := session.DB(name).C("challenges").Find(bson.M{
+		"$or": []bson.M{
+			bson.M{"challengee.id": userID},
+			bson.M{"challenger.id": userID},
+		},
+	}).Sort("expires").All(&challenges)
+	if err != nil {
+		log.WithField("ID", userID).Errorf("Unable to find challenges for user %d in database", userID)
+		return nil, err
+	}
+	log.Infof("found %d challenges for user %v", len(challenges), userID)
+
+	return &challenges, nil
+}
+
 // GetPendingChallenges get pending challenges by user ID from database
 func GetPendingChallenges(userID int64) (*[]Challenge, error) {
 	var challenges []Challenge
@@ -95,7 +113,7 @@ func GetPendingChallenges(userID int64) (*[]Challenge, error) {
 		log.WithField("ID", userID).Errorf("Unable to find pending challenges for user %d in database", userID)
 		return nil, err
 	}
-	log.Infof("found %d pending challenges", len(challenges))
+	log.Infof("found %d pending challenges for user %v", len(challenges), userID)
 
 	return &challenges, nil
 }
@@ -113,7 +131,7 @@ func GetActiveChallenges(userID int64) (*[]Challenge, error) {
 		log.WithField("ID", userID).Errorf("Unable to find active challenges for user %d in database", userID)
 		return nil, err
 	}
-	log.Infof("found %d active challenges", len(challenges))
+	log.Infof("found %d active challenges for user %v", len(challenges), userID)
 
 	return &challenges, nil
 }
@@ -131,62 +149,7 @@ func GetCompletedChallenges(userID int64) (*[]Challenge, error) {
 		log.WithField("ID", userID).Errorf("Unable to find active challenges for user %d in database", userID)
 		return nil, err
 	}
-	log.Infof("found %d completed challenges", len(challenges))
+	log.Infof("found %d completed challenges for user %v", len(challenges), userID)
 
 	return &challenges, nil
 }
-
-// module.exports.getChallenges = function (user, status, callback) {
-//   if (!user) callback('No user defined');
-//   if (!status) callback('No status defined');
-//   if (status === 'complete') {
-//     Challenge
-//     .find({
-//       $or: [
-//         { challengerId: user, challengerCompleted: true },
-//         { challengeeId: user, challengeeCompleted: true }
-//       ],
-//     })
-//     .sort([['updatedAt','descending'],['expires','descending']])
-//     .exec(function (err, challenges) {
-//       if (err) {
-//         callback('error finding completed challenges: ' + err);
-//       } else {
-//         callback(err, challenges);
-//       }
-//     });
-//   } else if (status === 'active') {
-//     Challenge
-//     .find({
-//       $or: [
-//         { challengerId: user, challengerCompleted: false, status: status },
-//         { challengeeId: user, challengeeCompleted: false, status: status }
-//       ]
-//     })
-//     .sort({ expires: 'ascending' })
-//     .exec(function (err, challenges) {
-//       if (err) {
-//         callback('error finding active challenges: ' + err);
-//       } else {
-//         callback(err, challenges);
-//       }
-//     });
-//   } else if (status === 'pending') {
-//     Challenge.find({
-//       $or: [
-//         { challengeeId: user, status: 'pending' },
-//         { challengerId: user, status: 'pending' }
-//       ]
-//     })
-//     .sort({ expires: 'ascending' })
-//     .exec(function (err, challenges) {
-//       if (err) {
-//         callback('error finding pending challenges: ' + err);
-//       } else {
-//         callback(err, challenges);
-//       }
-//     });
-//   } else {
-//     callback('Error getting challenges');
-//   }
-// };

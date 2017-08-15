@@ -71,14 +71,14 @@ func API() (mux *chi.Mux) {
 		r.Route("/users", func(r chi.Router) {
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", GetUserByID)
+				r.Get("/friends", GetFriendsByUserID)
+				r.Get("/segments", GetSegmentsByUserID)
+
 				r.Route("/challenges", func(r chi.Router) {
-					r.Get("/", GetChallengeByID)
-					r.Route("/{id}", func(r chi.Router) {
-						r.Get("/", GetChallengeByID)
-						r.Get("/pending", GetChallengeByID)
-						r.Get("/active", GetChallengeByID)
-						r.Get("/completed", GetChallengeByID)
-					})
+					r.Get("/", GetAllChallengesByUserID)
+					r.Get("/pending", GetPendingChallengesByUserID)
+					r.Get("/active", GetActiveChallengesByUserID)
+					r.Get("/completed", GetCompletedChallengesByUserID)
 				})
 			})
 		})
@@ -103,18 +103,6 @@ func API() (mux *chi.Mux) {
 			r.Put("/decline", DeclineChallengeByID)
 			r.Put("/complete", GetChallengeByID)
 			r.Post("/create", CreateChallenge)
-
-			r.Route("/pending", func(r chi.Router) {
-				r.Get("/{id}", GetPendingChallengesByUserID)
-			})
-
-			r.Route("/active", func(r chi.Router) {
-				r.Get("/{id}", GetActiveChallengesByUserID)
-			})
-
-			r.Route("/completed", func(r chi.Router) {
-				r.Get("/{id}", GetCompletedChallengesByUserID)
-			})
 		})
 
 		r.Route("/athletes", func(r chi.Router) {

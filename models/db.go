@@ -31,10 +31,12 @@ func Open() {
 		Password: password,
 	}
 	var err error
+	log.Println("Connecting to DB...")
 	session, err = mgo.DialWithInfo(dbInfo)
 	if err != nil {
-		log.WithError(err).Fatal("Unable to create new session")
+		log.WithError(err).Fatal("Unable to connect to DB")
 	}
+	log.Println("Connected to DB")
 }
 
 // Close will close the global MongoDB session

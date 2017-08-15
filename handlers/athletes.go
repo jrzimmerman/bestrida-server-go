@@ -64,7 +64,7 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to retrieve user from database")
+		log.WithField("USER ID", numID).Errorf("unable to retrieve user %v from database", numID)
 		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to retrieve user from database"})
 		return
 	}
@@ -75,11 +75,23 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// retrieve a list of users friends from Strava API
 	friends, err := strava.NewCurrentAthleteService(client).ListFriends().Do()
 	if err != nil {
-		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Unable to retrieve athlete friends"})
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Unable to retrieve athlete friends",
+		})
 		return
 	}
 
-	// store friends for a specific user
+	log.Infof("%v friends from strava", len(friends))
+
+	for _, friend := range friends {
+		log.Info("friend ID : \n %v", &friend.Id)
+	}
+	// store friends for user
+	// err = user.SaveUserFriends(friends)
+	// if err != nil {
+	// 	log.WithError(err).Errorf("unable to save user friends for user %d to database", user.ID)
+	// 	return
+	// }
 
 	// return request
 	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
@@ -93,7 +105,6 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
-	var segments []models.Segment
 	var userSegmentSlice []*models.UserSegment
 
 	// convert user id string from url param to number
@@ -112,7 +123,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userSegments := make(map[int64]models.UserSegment, 0)
+	userSegments := make(map[int64]*models.UserSegment, 0)
 	for _, segment := range user.Segments {
 		userSegments[segment.ID] = segment
 	}
@@ -163,7 +174,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 				log.WithField("SEGMENT ID", effort.Segment.Id).Infof("segment %v not found in database... saving", effort.Segment.Id)
 				segmentDetail, err := strava.NewSegmentsService(client).Get(effort.Segment.Id).Do()
 				if err != nil {
-					log.WithFields(map[string]interface{}{
+					log.WithFields(log.Fields{
 						"SEGMENT NAME": effort.Segment.Name,
 						"SEGMENT ID":   effort.Segment.Id,
 					}).Errorf("unable to retrieve segment detail for %d %s", effort.Segment.Id, effort.Segment.Name)
@@ -187,7 +198,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 				}
 				// add segment to userSegments if not found
 				if _, ok := userSegments[segment.ID]; !ok {
-					userSegments[segment.ID] = models.UserSegment{
+					userSegments[segment.ID] = &models.UserSegment{
 						ID:    segment.ID,
 						Name:  segment.Name,
 						Count: 0,
@@ -201,7 +212,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 				}
 				// add segment to userSegments if not found
 				if _, ok := userSegments[segment.ID]; !ok {
-					userSegments[segment.ID] = models.UserSegment{
+					userSegments[segment.ID] = &models.UserSegment{
 						ID:    segment.ID,
 						Name:  segment.Name,
 						Count: 0,
@@ -212,7 +223,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, userSegment := range userSegments {
-		userSegmentSlice = append(userSegmentSlice, &userSegment)
+		userSegmentSlice = append(userSegmentSlice, userSegment)
 	}
 
 	// store segment map for user
@@ -221,11 +232,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		log.WithError(err).Errorf("unable to save user segments for user %d to database", user.ID)
 		return
 	}
-	// range over segmentMap to creake segments array
-	for _, segment := range segmentMap {
-		segments = append(segments, segment)
-	}
 
-	log.Infof("found %d unique segments", len(segments))
-	res.Render(http.StatusOK, segments)
+	log.WithField("USER ID", user.ID).Infof("found %d segments for user %v", len(userSegmentSlice), user.ID)
+	res.Render(http.StatusOK, userSegmentSlice)
 }

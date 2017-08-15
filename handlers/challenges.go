@@ -176,6 +176,31 @@ func DeclineChallengeByID(w http.ResponseWriter, r *http.Request) {
 	res.Render(http.StatusOK, "challenge declined")
 }
 
+// GetAllChallengesByUserID gets all pending challenges by user ID
+func GetAllChallengesByUserID(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+
+	id := chi.URLParam(r, "id")
+
+	numID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		log.WithField("ID", numID).Error("unable to convert user ID param")
+		res.Render(http.StatusBadRequest, map[string]interface{}{
+			"error": "unable to convert user ID param",
+		})
+		return
+	}
+	challenges, err := models.GetAllChallenges(numID)
+	if err != nil {
+		log.WithField("ID", numID).Errorf("Could not retrieve challenges from database for user %v", numID)
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Could not retrieve pending challenges from database",
+		})
+		return
+	}
+	res.Render(http.StatusOK, challenges)
+}
+
 // GetPendingChallengesByUserID gets all pending challenges by user ID
 func GetPendingChallengesByUserID(w http.ResponseWriter, r *http.Request) {
 	res := New(w)
@@ -185,13 +210,17 @@ func GetPendingChallengesByUserID(w http.ResponseWriter, r *http.Request) {
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert user ID param")
-		res.Render(http.StatusBadRequest, map[string]interface{}{"error": "unable to convert user ID param"})
+		res.Render(http.StatusBadRequest, map[string]interface{}{
+			"error": "unable to convert user ID param",
+		})
 		return
 	}
 	challenges, err := models.GetPendingChallenges(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("Could not retrieve pending challenges from database")
-		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Could not retrieve pending challenges from database"})
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Could not retrieve pending challenges from database",
+		})
 		return
 	}
 	res.Render(http.StatusOK, challenges)
@@ -206,13 +235,17 @@ func GetActiveChallengesByUserID(w http.ResponseWriter, r *http.Request) {
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert user ID param")
-		res.Render(http.StatusBadRequest, map[string]interface{}{"error": "unable to convert user ID param"})
+		res.Render(http.StatusBadRequest, map[string]interface{}{
+			"error": "unable to convert user ID param",
+		})
 		return
 	}
 	challenges, err := models.GetActiveChallenges(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("Could not retrieve active challenges from database")
-		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Could not retrieve active challenges from database"})
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Could not retrieve active challenges from database",
+		})
 		return
 	}
 	res.Render(http.StatusOK, challenges)
@@ -227,13 +260,17 @@ func GetCompletedChallengesByUserID(w http.ResponseWriter, r *http.Request) {
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert user ID param")
-		res.Render(http.StatusBadRequest, map[string]interface{}{"error": "unable to convert user ID param"})
+		res.Render(http.StatusBadRequest, map[string]interface{}{
+			"error": "unable to convert user ID param",
+		})
 		return
 	}
 	challenges, err := models.GetCompletedChallenges(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("Could not retrieve active challenges from database")
-		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Could not retrieve active challenges from database"})
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Could not retrieve active challenges from database",
+		})
 		return
 	}
 	res.Render(http.StatusOK, challenges)

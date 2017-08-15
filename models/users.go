@@ -22,31 +22,32 @@ type Friend struct {
 
 // UserSegment struct handles the MongoDB schema for each users segments
 type UserSegment struct {
-	ID    int64  `bson:"_id" json:"id"`
-	Name  string `bson:"name" json:"name"`
-	Count int    `bson:"count" json:"count"`
+	ID           int64  `bson:"_id" json:"id"`
+	Name         string `bson:"name" json:"name"`
+	Count        int    `bson:"count" json:"count"`
+	ActivityType string `bson:"activityType" json:"activityType"`
 }
 
 // User struct handles the MongoDB schema for a user
 type User struct {
-	ID        int64         `bson:"_id" json:"id"`
-	FirstName string        `bson:"firstname" json:"firstName"`
-	LastName  string        `bson:"lastname" json:"lastName"`
-	FullName  string        `bson:"fullname" json:"fullName"`
-	City      string        `bson:"city" json:"city"`
-	State     string        `bson:"state" json:"state"`
-	Country   string        `bson:"country" json:"country"`
-	Gender    string        `bson:"gender" json:"gender"`
-	Token     string        `bson:"token" json:"token"`
-	Photo     string        `bson:"photo" json:"photo"`
-	Email     string        `bson:"email" json:"email"`
-	Friends   []Friend      `bson:"friends" json:"friends"`
-	Segments  []UserSegment `bson:"segments" json:"segments"`
-	Wins      int           `bson:"wins" json:"wins"`
-	Losses    int           `bson:"losses" json:"losses"`
-	CreatedAt time.Time     `bson:"createdAt" json:"createdAt,omitempty"`
-	UpdatedAt time.Time     `bson:"updatedAt" json:"updatedAt,omitempty"`
-	DeletedAt *time.Time    `bson:"deletedAt" json:"deletedAt,omitempty"`
+	ID        int64          `bson:"_id" json:"id"`
+	FirstName string         `bson:"firstname" json:"firstName"`
+	LastName  string         `bson:"lastname" json:"lastName"`
+	FullName  string         `bson:"fullname" json:"fullName"`
+	City      string         `bson:"city" json:"city"`
+	State     string         `bson:"state" json:"state"`
+	Country   string         `bson:"country" json:"country"`
+	Gender    string         `bson:"gender" json:"gender"`
+	Token     string         `bson:"token" json:"token"`
+	Photo     string         `bson:"photo" json:"photo"`
+	Email     string         `bson:"email" json:"email"`
+	Friends   []*Friend      `bson:"friends" json:"friends"`
+	Segments  []*UserSegment `bson:"segments" json:"segments"`
+	Wins      int            `bson:"wins" json:"wins"`
+	Losses    int            `bson:"losses" json:"losses"`
+	CreatedAt time.Time      `bson:"createdAt" json:"createdAt,omitempty"`
+	UpdatedAt time.Time      `bson:"updatedAt" json:"updatedAt,omitempty"`
+	DeletedAt *time.Time     `bson:"deletedAt" json:"deletedAt,omitempty"`
 }
 
 // GetUserByID gets a single stored user from MongoDB
@@ -116,14 +117,14 @@ func (u User) UpdateUser(auth *strava.AuthorizationResponse) (*User, error) {
 func RegisterUser(auth *strava.AuthorizationResponse) (*User, error) {
 	u, err := GetUserByID(auth.Athlete.Id)
 	if err != nil {
-		log.WithField("ID", auth.Athlete.Id).Info("Unable to find user with id, creating user")
+		log.WithField("USER ID", auth.Athlete.Id).Infof("Unable to find user with id %v creating user", auth.Athlete.Id)
 		user, err := CreateUser(auth)
 		if err != nil {
 			return nil, err
 		}
 		return user, nil
 	}
-	log.WithField("ID", u.ID).Info("Found user with id, updating user")
+	log.WithField("USER ID", u.ID).Infof("Found user with id %v updating user", u.ID)
 	user, err := u.UpdateUser(auth)
 	if err != nil {
 		return nil, err
@@ -146,14 +147,35 @@ func (u User) UpdateAthlete(athlete *strava.AthleteDetailed) (*User, error) {
 	u.UpdatedAt = time.Now()
 
 	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
-		log.WithField("USER ID", u.ID).Errorf("Unable to update user:\n %v", err)
+		log.WithField("USER ID", u.ID).Errorf("Unable to update user %v:\n %v", u.ID, err)
 		return nil, err
 	}
-	log.WithField("ATHLETE ID", u.ID).Infof("athlete %d updated", u.ID)
+	log.WithField("USER ID", u.ID).Infof("user %d updated from Strava", u.ID)
 	return &u, nil
+}
+
+// SaveUserFriends save user friends
+func (u User) SaveUserFriends(friends []*Friend) error {
+	u.Friends = friends
+	u.UpdatedAt = time.Now()
+
+	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+		log.Error("unable to save user friends")
+		return err
+	}
+	log.WithField("USER ID", u.ID).Infof("stored %v friends", len(friends))
+	return nil
 }
 
 // SaveUserSegments save user segments
 func (u User) SaveUserSegments(segments []*UserSegment) error {
+	u.Segments = segments
+	u.UpdatedAt = time.Now()
+
+	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+		log.WithField("USER ID", u.ID).Error("unable to save user segments")
+		return err
+	}
+	log.WithField("USER ID", u.ID).Infof("stored %v segments in db for user %v", len(segments), u.ID)
 	return nil
 }
