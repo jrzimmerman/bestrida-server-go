@@ -48,6 +48,7 @@ func GetEffortsBySegmentIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Unable to retrieve segment efforts info"})
 		return
 	}
+	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
 
 	res.Render(http.StatusOK, efforts)
 }

@@ -87,6 +87,16 @@ func SaveSegment(s *strava.SegmentDetailed) (*Segment, error) {
 	return segment, nil
 }
 
+// RemoveSegment deletes segment from DB
+func RemoveSegment(ID int64) error {
+	if err := session.DB(name).C("segments").RemoveId(ID); err != nil {
+		log.WithField("SEGMENT ID", ID).Errorf("Unable to remove segment:\n %v", err)
+		return err
+	}
+
+	return nil
+}
+
 // UpdateSegment stores a cached segment
 // this prevents stale data from strava api rate limiting
 func (segment Segment) UpdateSegment(s *strava.SegmentDetailed) (*Segment, error) {

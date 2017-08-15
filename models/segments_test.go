@@ -1,6 +1,12 @@
 package models
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/jrzimmerman/bestrida-server-go/utils"
+	log "github.com/sirupsen/logrus"
+	strava "github.com/strava/go.strava"
+)
 
 func TestGetSegmentByIDSuccess(t *testing.T) {
 	id := int64(2539276)
@@ -22,4 +28,54 @@ func TestGetSegmentByIDFailure(t *testing.T) {
 	if err.Error() != "not found" {
 		t.Errorf("Unable to throw error for ID:\n %v", err)
 	}
+}
+
+var accessToken = utils.GetEnvString("STRAVA_ACCESS_TOKEN")
+
+func TestSaveRemoveUpdateSegment(t *testing.T) {
+	var numID int64 = 2539276
+
+	if err := RemoveSegment(numID); err != nil {
+		t.Error("Unable to remove segment")
+		return
+	}
+	t.Logf("segment %d removed", numID)
+
+	// use our access token to grab generic segment info
+	client := strava.NewClient(accessToken)
+	segment, err := strava.NewSegmentsService(client).Get(numID).Do()
+	if err != nil {
+		log.Error("Unable to retrieve segment info")
+		return
+	}
+	t.Logf("segment %d returned from Strava", segment.Id)
+
+	stored, err := SaveSegment(segment)
+	if err != nil {
+		t.Errorf("Unable to store segment from Strava:\n %v", err)
+		return
+	}
+
+	if stored.ID != segment.Id {
+		t.Errorf("Stored segment ID %v, is not equal to %v from Strava", stored.ID, segment.Id)
+		return
+	}
+	t.Logf("segment %d successfully stored", stored.ID)
+
+	dup, err := SaveSegment(segment)
+	if err == nil {
+		t.Errorf("Should throw error when trying to store duplicate segment: %v", dup.ID)
+	}
+
+	updated, err := stored.UpdateSegment(segment)
+	if err != nil {
+		t.Errorf("Unable to update stored segment:\n %v", err)
+		return
+	}
+
+	if updated.ID != segment.Id {
+		t.Errorf("Updated segment ID %v, is not equal to %v from Strava", updated.ID, segment.Id)
+		return
+	}
+	t.Logf("segment %d successfully stored", stored.ID)
 }
