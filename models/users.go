@@ -51,9 +51,12 @@ type User struct {
 
 // GetUserByID gets a single stored user from MongoDB
 func GetUserByID(id int64) (*User, error) {
+	s := session.Copy()
+	defer s.Close()
+
 	var u User
 
-	if err := session.DB(name).C("users").FindId(id).One(&u); err != nil {
+	if err := s.DB(name).C("users").FindId(id).One(&u); err != nil {
 		log.WithField("USER ID", id).Errorf("Unable to find user with id:\n%v", err)
 		return nil, err
 	}
@@ -65,6 +68,9 @@ func GetUserByID(id int64) (*User, error) {
 
 // CreateUser creates user in MongoDB
 func CreateUser(auth *strava.AuthorizationResponse) (*User, error) {
+	s := session.Copy()
+	defer s.Close()
+
 	user := User{
 		ID:        auth.Athlete.Id,
 		FirstName: auth.Athlete.FirstName,
@@ -81,7 +87,7 @@ func CreateUser(auth *strava.AuthorizationResponse) (*User, error) {
 		UpdatedAt: time.Now(),
 	}
 
-	if err := session.DB(name).C("users").Insert(&user); err != nil {
+	if err := s.DB(name).C("users").Insert(&user); err != nil {
 		log.WithField("ID", user.ID).Errorf("Unable to create user with id:\n %v", err)
 		return nil, err
 	}
@@ -91,6 +97,9 @@ func CreateUser(auth *strava.AuthorizationResponse) (*User, error) {
 
 // UpdateUser updates user in MongoDB
 func (u User) UpdateUser(auth *strava.AuthorizationResponse) (*User, error) {
+	s := session.Copy()
+	defer s.Close()
+
 	u.ID = auth.Athlete.Id
 	u.FirstName = auth.Athlete.FirstName
 	u.LastName = auth.Athlete.LastName
@@ -104,7 +113,7 @@ func (u User) UpdateUser(auth *strava.AuthorizationResponse) (*User, error) {
 	u.Email = auth.Athlete.Email
 	u.UpdatedAt = time.Now()
 
-	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
 		log.WithField("USER ID", u.ID).Errorf("Unable to update user:\n %v", err)
 		return nil, err
 	}
@@ -133,6 +142,9 @@ func RegisterUser(auth *strava.AuthorizationResponse) (*User, error) {
 
 // UpdateAthlete updates user in MongoDB
 func (u User) UpdateAthlete(athlete *strava.AthleteDetailed) (*User, error) {
+	s := session.Copy()
+	defer s.Close()
+
 	u.ID = athlete.Id
 	u.FirstName = athlete.FirstName
 	u.LastName = athlete.LastName
@@ -145,7 +157,7 @@ func (u User) UpdateAthlete(athlete *strava.AthleteDetailed) (*User, error) {
 	u.Email = athlete.Email
 	u.UpdatedAt = time.Now()
 
-	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
 		log.WithField("USER ID", u.ID).Errorf("Unable to update user %v:\n %v", u.ID, err)
 		return nil, err
 	}
@@ -155,10 +167,12 @@ func (u User) UpdateAthlete(athlete *strava.AthleteDetailed) (*User, error) {
 
 // SaveUserFriends save user friends
 func (u User) SaveUserFriends(friends []*Friend) error {
+	s := session.Copy()
+	defer s.Close()
 	u.Friends = friends
 	u.UpdatedAt = time.Now()
 
-	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
 		log.Error("unable to save user friends")
 		return err
 	}
@@ -168,10 +182,12 @@ func (u User) SaveUserFriends(friends []*Friend) error {
 
 // SaveUserSegments save user segments
 func (u User) SaveUserSegments(segments []*UserSegment) error {
+	s := session.Copy()
+	defer s.Close()
 	u.Segments = segments
 	u.UpdatedAt = time.Now()
 
-	if err := session.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
 		log.WithField("USER ID", u.ID).Error("unable to save user segments")
 		return err
 	}

@@ -38,9 +38,12 @@ type Segment struct {
 
 // GetSegmentByID gets a single stored segment from MongoDB
 func GetSegmentByID(id int64) (*Segment, error) {
+	sess := session.Copy()
+	defer sess.Close()
+
 	var s Segment
 
-	if err := session.DB(name).C("segments").Find(bson.M{"_id": id}).One(&s); err != nil {
+	if err := sess.DB(name).C("segments").Find(bson.M{"_id": id}).One(&s); err != nil {
 		log.WithField("ID", id).Error("Unable to find segment with id")
 		return nil, err
 	}
@@ -55,6 +58,9 @@ func GetSegmentByID(id int64) (*Segment, error) {
 // SaveSegment stores a cached segment
 // this prevents strava api rate limiting
 func SaveSegment(s *strava.SegmentDetailed) (*Segment, error) {
+	sess := session.Copy()
+	defer sess.Close()
+
 	segment := &Segment{
 		ID:                 s.Id,
 		Name:               s.Name,
@@ -79,7 +85,7 @@ func SaveSegment(s *strava.SegmentDetailed) (*Segment, error) {
 		UpdatedAt: time.Now(),
 	}
 
-	if err := session.DB(name).C("segments").Insert(&segment); err != nil {
+	if err := sess.DB(name).C("segments").Insert(&segment); err != nil {
 		log.WithField("ID", segment.ID).Errorf("Unable to create segment:\n %v", err)
 		return nil, err
 	}
@@ -89,7 +95,10 @@ func SaveSegment(s *strava.SegmentDetailed) (*Segment, error) {
 
 // RemoveSegment deletes segment from DB
 func RemoveSegment(ID int64) error {
-	if err := session.DB(name).C("segments").RemoveId(ID); err != nil {
+	sess := session.Copy()
+	defer sess.Close()
+
+	if err := sess.DB(name).C("segments").RemoveId(ID); err != nil {
 		log.WithField("SEGMENT ID", ID).Errorf("Unable to remove segment:\n %v", err)
 		return err
 	}
@@ -100,6 +109,9 @@ func RemoveSegment(ID int64) error {
 // UpdateSegment stores a cached segment
 // this prevents stale data from strava api rate limiting
 func (segment Segment) UpdateSegment(s *strava.SegmentDetailed) (*Segment, error) {
+	sess := session.Copy()
+	defer sess.Close()
+
 	segment.ID = s.Id
 	segment.Name = s.Name
 	segment.ActivityType = string(s.ActivityType)
@@ -121,7 +133,7 @@ func (segment Segment) UpdateSegment(s *strava.SegmentDetailed) (*Segment, error
 	}
 	segment.UpdatedAt = time.Now()
 
-	if err := session.DB(name).C("segments").UpdateId(segment.ID, &segment); err != nil {
+	if err := sess.DB(name).C("segments").UpdateId(segment.ID, &segment); err != nil {
 		log.WithField("SEGMENT ID", segment.ID).Errorf("Unable to update segment:\n %v", err)
 		return nil, err
 	}

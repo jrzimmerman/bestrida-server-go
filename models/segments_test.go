@@ -32,7 +32,7 @@ func TestGetSegmentByIDFailure(t *testing.T) {
 
 var accessToken = utils.GetEnvString("STRAVA_ACCESS_TOKEN")
 
-func TestSaveRemoveUpdateSegment(t *testing.T) {
+func TestSaveSegment(t *testing.T) {
 	var numID int64 = 2539276
 
 	if err := RemoveSegment(numID); err != nil {
@@ -66,16 +66,38 @@ func TestSaveRemoveUpdateSegment(t *testing.T) {
 	if err == nil {
 		t.Errorf("Should throw error when trying to store duplicate segment: %v", dup.ID)
 	}
+}
 
-	updated, err := stored.UpdateSegment(segment)
+func TestUpdateSegment(t *testing.T) {
+	var numID int64 = 2539276
+
+	// use our access token to grab generic segment info
+	client := strava.NewClient(accessToken)
+	stravaSegment, err := strava.NewSegmentsService(client).Get(numID).Do()
+	if err != nil {
+		log.Error("Unable to retrieve segment info")
+		return
+	}
+	t.Logf("segment %d returned from Strava", stravaSegment.Id)
+
+	segment, err := GetSegmentByID(numID)
+	if err != nil {
+		t.Errorf("Unable to retrieve segment by ID:\n %v", err)
+	}
+
+	if segment.ID != numID {
+		t.Errorf("Segment ID %v, is not equal to %v", segment.ID, numID)
+	}
+
+	updated, err := segment.UpdateSegment(stravaSegment)
 	if err != nil {
 		t.Errorf("Unable to update stored segment:\n %v", err)
 		return
 	}
 
-	if updated.ID != segment.Id {
-		t.Errorf("Updated segment ID %v, is not equal to %v from Strava", updated.ID, segment.Id)
+	if updated.ID != stravaSegment.Id {
+		t.Errorf("Updated segment ID %v, is not equal to %v from Strava", updated.ID, stravaSegment.Id)
 		return
 	}
-	t.Logf("segment %d successfully stored", stored.ID)
+	t.Logf("segment %d successfully updated", updated.ID)
 }

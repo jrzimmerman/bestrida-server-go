@@ -42,9 +42,12 @@ type Challenge struct {
 
 // GetChallengeByID gets a single stored challenge from database
 func GetChallengeByID(id bson.ObjectId) (*Challenge, error) {
+	s := session.Copy()
+	defer s.Close()
+
 	var c Challenge
 
-	if err := session.DB(name).C("challenges").Find(bson.M{"_id": id}).One(&c); err != nil {
+	if err := s.DB(name).C("challenges").Find(bson.M{"_id": id}).One(&c); err != nil {
 		log.WithField("ID", id).Error("Unable to find challenge with id in database")
 		return nil, err
 	}
@@ -54,7 +57,10 @@ func GetChallengeByID(id bson.ObjectId) (*Challenge, error) {
 
 // CreateChallenge creates a new challenge in database
 func CreateChallenge(c Challenge) error {
-	if err := session.DB(name).C("challenges").Insert(c); err != nil {
+	s := session.Copy()
+	defer s.Close()
+
+	if err := s.DB(name).C("challenges").Insert(c); err != nil {
 		log.Errorf("Unable to create a new challenge:\n %v", err)
 		return err
 	}
@@ -64,7 +70,10 @@ func CreateChallenge(c Challenge) error {
 
 // RemoveChallenge removes a challenge from database
 func RemoveChallenge(id bson.ObjectId) error {
-	if err := session.DB(name).C("challenges").RemoveId(id); err != nil {
+	s := session.Copy()
+	defer s.Close()
+
+	if err := s.DB(name).C("challenges").RemoveId(id); err != nil {
 		log.WithField("ID", id).Error("Unable to find challenge with id in database")
 		return err
 	}
@@ -74,7 +83,10 @@ func RemoveChallenge(id bson.ObjectId) error {
 
 // UpdateChallengeStatus updates the challenge
 func UpdateChallengeStatus(id bson.ObjectId, status string, updateTime time.Time) error {
-	if err := session.DB(name).C("challenges").Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"status": status, "updatedAt": updateTime}}); err != nil {
+	s := session.Copy()
+	defer s.Close()
+
+	if err := s.DB(name).C("challenges").Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"status": status, "updatedAt": updateTime}}); err != nil {
 		log.WithField("ID", id).Errorf("Unable to update challenge with id: %v in database", id)
 		return err
 	}
@@ -84,8 +96,11 @@ func UpdateChallengeStatus(id bson.ObjectId, status string, updateTime time.Time
 
 // GetAllChallenges get all challenges for a user from database
 func GetAllChallenges(userID int64) (*[]Challenge, error) {
+	s := session.Copy()
+	defer s.Close()
+
 	var challenges []Challenge
-	err := session.DB(name).C("challenges").Find(bson.M{
+	err := s.DB(name).C("challenges").Find(bson.M{
 		"$or": []bson.M{
 			bson.M{"challengee.id": userID},
 			bson.M{"challenger.id": userID},
@@ -102,8 +117,11 @@ func GetAllChallenges(userID int64) (*[]Challenge, error) {
 
 // GetPendingChallenges get pending challenges by user ID from database
 func GetPendingChallenges(userID int64) (*[]Challenge, error) {
+	s := session.Copy()
+	defer s.Close()
+
 	var challenges []Challenge
-	err := session.DB(name).C("challenges").Find(bson.M{
+	err := s.DB(name).C("challenges").Find(bson.M{
 		"$or": []bson.M{
 			bson.M{"challengee.id": userID, "status": "pending"},
 			bson.M{"challenger.id": userID, "status": "pending"},
@@ -120,8 +138,11 @@ func GetPendingChallenges(userID int64) (*[]Challenge, error) {
 
 // GetActiveChallenges get active challenges by user ID from database
 func GetActiveChallenges(userID int64) (*[]Challenge, error) {
+	s := session.Copy()
+	defer s.Close()
+
 	var challenges []Challenge
-	err := session.DB(name).C("challenges").Find(bson.M{
+	err := s.DB(name).C("challenges").Find(bson.M{
 		"$or": []bson.M{
 			bson.M{"challengee.id": userID, "challengee.completed": false, "status": "active"},
 			bson.M{"challenger.id": userID, "challenger.completed": false, "status": "active"},
@@ -138,8 +159,11 @@ func GetActiveChallenges(userID int64) (*[]Challenge, error) {
 
 // GetCompletedChallenges get completed challenges by user ID from database
 func GetCompletedChallenges(userID int64) (*[]Challenge, error) {
+	s := session.Copy()
+	defer s.Close()
+
 	var challenges []Challenge
-	err := session.DB(name).C("challenges").Find(bson.M{
+	err := s.DB(name).C("challenges").Find(bson.M{
 		"$or": []bson.M{
 			bson.M{"challengee.id": userID, "challengee.completed": true, "status": "complete"},
 			bson.M{"challenger.id": userID, "challenger.completed": true, "status": "complete"},
