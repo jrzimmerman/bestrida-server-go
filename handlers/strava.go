@@ -25,11 +25,16 @@ func oAuthSuccess(auth *strava.AuthorizationResponse, w http.ResponseWriter, r *
 	log.WithField("USER ID", userID).Info("user id on oAuth success")
 	url := "/login.html?oauth_token=" + userToken + "&userId=" + userID
 	http.Redirect(w, r, url, http.StatusFound)
-
 	_, err := models.RegisterUser(auth)
 	if err != nil {
 		log.Errorf("error registering user %d", auth.Athlete.Id)
 	}
+
+	GetFriendsFromStrava(auth.Athlete.Id)
+
+	// page refers to the number of activities to collect for a user
+	var page = 3
+	GetUserSegmentsFromStrava(auth.Athlete.Id, page)
 }
 
 func oAuthFailure(err error, w http.ResponseWriter, r *http.Request) {

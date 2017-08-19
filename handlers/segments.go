@@ -37,6 +37,11 @@ func GetSegmentByID(w http.ResponseWriter, r *http.Request) {
 	res.Render(http.StatusOK, segment)
 }
 
+// GetSegmentByIDWithUserID
+func GetSegmentByIDWithUserID(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
 // GetSegmentByIDFromStrava returns the strava segment with the specified ID
 func GetSegmentByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	res := New(w)
@@ -72,4 +77,9 @@ func GetSegmentByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	} else {
 		s.UpdateSegment(segment)
 	}
+}
+
+// GetSegmentByIDFromStravaWithUserID
+func GetSegmentByIDFromStravaWithUserID(w http.ResponseWriter, r *http.Request) {
+	return
 }

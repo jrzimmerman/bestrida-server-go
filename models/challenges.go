@@ -14,18 +14,18 @@ type Opponent struct {
 	Photo            string   `json:"photo"`
 	Completed        bool     `json:"completed"`
 	Time             *int     `json:"time,omitempty"`
-	AverageCadence   *float32 `json:"averageCadence,omitempty"`
-	AverageWatts     *float32 `json:"averageWatts,omitempty"`
-	AverageHeartRate *float32 `json:"averageHeartRate,omitempty"`
+	AverageCadence   *float64 `json:"averageCadence,omitempty"`
+	AverageWatts     *float64 `json:"averageWatts,omitempty"`
+	AverageHeartRate *float64 `json:"averageHeartRate,omitempty"`
 	MaxHeartRate     *int     `json:"maxHeartRate,omitempty"`
 }
 
 // Challenge struct handles the database schema for a challenge
 type Challenge struct {
 	ID         bson.ObjectId `bson:"_id,omitempty" json:"id"`
-	Segment    *Segment      `bson:"segment" json:"segment,omitempty"`
-	Challenger *Opponent     `bson:"challenger" json:"challenger,omitempty"`
-	Challengee *Opponent     `bson:"challengee" json:"challengee,omitempty"`
+	Segment    *Segment      `bson:"segment" json:"segment"`
+	Challenger *Opponent     `bson:"challenger" json:"challenger"`
+	Challengee *Opponent     `bson:"challengee" json:"challengee"`
 	Status     string        `bson:"status" json:"status"`
 	Created    *time.Time    `bson:"created" json:"created,omitempty"`
 	Expires    *time.Time    `bson:"expires" json:"expires,omitempty"`

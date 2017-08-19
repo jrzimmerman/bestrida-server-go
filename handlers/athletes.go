@@ -18,15 +18,21 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(http.StatusBadRequest, "unable to convert ID param")
+		log.Error("unable to convert ID param")
+		res.Render(http.StatusBadRequest, map[string]interface{}{
+			"error": "unable to convert ID param",
+			"stack": err,
+		})
 		return
 	}
 
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to retrieve user from database"})
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "unable to retrieve user from database",
+			"stack": err,
+		})
 		return
 	}
 
@@ -36,7 +42,10 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// retrieve a list of users segments from Strava API
 	athlete, err := strava.NewCurrentAthleteService(client).Get().Do()
 	if err != nil {
-		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Unable to retrieve athlete info"})
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Unable to retrieve athlete info",
+			"stack": err,
+		})
 		return
 	}
 	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
@@ -45,38 +54,26 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	u, err := user.UpdateAthlete(athlete)
 	if err != nil {
 		log.WithError(err).Errorf("unable to update athlete %d", athlete.Id)
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Unable to update athlete in DB",
+			"stack": err,
+		})
+		return
 	}
 	res.Render(http.StatusOK, &u)
 }
 
-// GetFriendsByUserIDFromStrava returns a list of friends for a specific user by ID from strava
-func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
-	res := New(w)
-	id := chi.URLParam(r, "id")
-
-	numID, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
-		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(http.StatusInternalServerError, map[string]interface{}{
-			"error": "unable to convert ID param",
-		})
-		return
-	}
-
+// GetFriendsFromStrava gets a users friends from Strava
+func GetFriendsFromStrava(numID int64) (friends []*models.Friend, err error) {
 	// get user based on ID
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("USER ID", numID).Errorf("unable to retrieve user %v from database", numID)
-		res.Render(http.StatusInternalServerError, map[string]interface{}{
-			"error": "unable to retrieve user from database",
-		})
-		return
+		return nil, err
 	}
 
-	// friends slice to store in db and return in response
-	var friends []*models.Friend
 	// friends map to store unique friend info
-	friendMap := make(map[int64]*models.Friend, 0)
+	friendMap := make(map[int64]*models.Friend, len(user.Friends))
 	// iterate over users existing friends to populate friend map
 	for _, friend := range user.Friends {
 		friendMap[friend.ID] = friend
@@ -88,13 +85,10 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// retrieve a list of users friends from Strava API
 	stravaFriends, err := strava.NewCurrentAthleteService(client).ListFriends().Do()
 	if err != nil {
-		res.Render(http.StatusInternalServerError, map[string]interface{}{
-			"error": "Unable to retrieve athlete friends",
-		})
-		return
+		return nil, err
 	}
 	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
-	log.Infof("%v friends from strava", len(stravaFriends))
+	log.Infof("Finished fetching %v athlete friends from Strava...\n", len(stravaFriends))
 
 	// update friends map based upon strava friend data
 	for _, stravaFriend := range stravaFriends {
@@ -108,6 +102,14 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 				Photo:     stravaFriend.Profile,
 			}
 		} else {
+			count := 0
+			wins := 0
+			losses := 0
+			if friend, ok := friendMap[stravaFriend.Id]; ok {
+				count = friend.ChallengeCount
+				wins = friend.Wins
+				losses = friend.Losses
+			}
 			// existing friend, update info and keep count
 			friendMap[stravaFriend.Id] = &models.Friend{
 				ID:             stravaFriend.Id,
@@ -115,9 +117,9 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 				LastName:       stravaFriend.LastName,
 				FullName:       stravaFriend.FirstName + " " + stravaFriend.LastName,
 				Photo:          stravaFriend.Profile,
-				ChallengeCount: friendMap[stravaFriend.Id].ChallengeCount,
-				Wins:           friendMap[stravaFriend.Id].Wins,
-				Losses:         friendMap[stravaFriend.Id].Losses,
+				ChallengeCount: count,
+				Wins:           wins,
+				Losses:         losses,
 			}
 		}
 	}
@@ -131,39 +133,52 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	err = user.SaveUserFriends(friends)
 	if err != nil {
 		log.WithError(err).Errorf("unable to save user friends for user %d to database", user.ID)
-		return
+		return nil, err
 	}
-
-	log.Infof("found %d friends for athlete %d from strava", len(friends), user.ID)
-	res.Render(http.StatusOK, friends)
+	return friends, nil
 }
 
-// GetSegmentsByUserIDFromStrava returns a list of segments for a specific user by ID from strava
-func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
+// GetFriendsByUserIDFromStrava returns a list of friends for a specific user by ID from strava
+func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	res := New(w)
 	id := chi.URLParam(r, "id")
 
-	// convert user id string from url param to number
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.WithField("USER ID", numID).Error("unable to convert USER ID param")
-		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "unable to convert USER ID param"})
+		log.WithField("ID", numID).Error("unable to convert ID param")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "unable to convert ID param",
+			"stack": err,
+		})
 		return
 	}
 
+	// Get users friends from strava and save to DB
+	friends, err := GetFriendsFromStrava(numID)
+	if err != nil {
+		log.WithField("USER ID", numID).Errorf("unable to retrieve user %v friends from strava", numID)
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "unable to retrieve users friends from strava",
+			"stack": err,
+		})
+		return
+	}
+
+	log.Infof("found %d friends for athlete %d from strava", len(friends), numID)
+	res.Render(http.StatusOK, friends)
+}
+
+// GetUserSegmentsFromStrava gets a users recently completed segments from Strava
+func GetUserSegmentsFromStrava(numID int64, page int) (userSegmentSlice []*models.UserSegment, err error) {
 	// find user by numID to retrieve strava token
 	user, err := models.GetUserByID(numID)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		res.Render(404, "unable to retrieve user from database")
-		return
+		return nil, err
 	}
 
-	// unique segment slice to store a users segments
-	var userSegmentSlice []*models.UserSegment
-
 	// unique segment map to store a users segments
-	userSegments := make(map[int64]*models.UserSegment, 0)
+	userSegments := make(map[int64]*models.UserSegment, len(user.Segments))
 	for _, segment := range user.Segments {
 		userSegments[segment.ID] = segment
 	}
@@ -171,14 +186,13 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	// create new strava client with user token
 	client := strava.NewClient(user.Token)
 
-	log.Info("Fetching athlete activity summary info from Strava...\n")
-	activities, err := strava.NewCurrentAthleteService(client).ListActivities().Page(1).PerPage(200).Do()
+	log.Info("Fetching athlete activities from Strava...\n")
+	activities, err := strava.NewCurrentAthleteService(client).ListActivities().Page(1).PerPage(page).Do()
 	if err != nil {
-		res.Render(http.StatusInternalServerError, map[string]interface{}{"error": "Unable to retrieve athlete activities summary"})
-		return
+		return nil, err
 	}
 	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
-
+	log.Infof("Finished fetching %v athlete activities from Strava...\n", len(activities))
 	// range over activity summary to get activity details
 	// the activity summary does not contain segment effort information
 	for _, activitySummary := range activities {
@@ -194,11 +208,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 				"NAME": activityDetail.Name,
 				"ID":   activityDetail.Id,
 			}).Errorf("unable to retrieve activity detail: \n%v", err)
-			res.Render(http.StatusInternalServerError, map[string]interface{}{
-				"error":    "Unable to retrieve activity detail",
-				"activity": activityDetail,
-			})
-			return
+			return nil, err
 		}
 		log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
 
@@ -217,18 +227,14 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 						"SEGMENT NAME": effort.Segment.Name,
 						"SEGMENT ID":   effort.Segment.Id,
 					}).Errorf("unable to retrieve segment detail for %d %s", effort.Segment.Id, effort.Segment.Name)
-					res.Render(http.StatusInternalServerError, map[string]interface{}{
-						"error":   "Unable to retrieve segment detail",
-						"segment": effort.Segment,
-					})
-					return
+					return nil, err
 				}
 				log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
 				log.WithField("SEGMENT DETAIL ID", segmentDetail.Id).Infof("segment %d returned from strava", segmentDetail.Id)
 				saved, err := models.SaveSegment(segmentDetail)
 				if err != nil {
 					log.WithError(err).Errorf("unable to save segment detail %d to database", segmentDetail.Id)
-					return
+					return nil, err
 				}
 				log.WithField("SEGMENT ID", saved.ID).Infof("segment %d stored in DB", saved.ID)
 
@@ -237,6 +243,7 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 					ID:           saved.ID,
 					Name:         saved.Name,
 					ActivityType: saved.ActivityType,
+					Count:        0,
 				}
 
 			} else if time.Now().After(segment.UpdatedAt.AddDate(0, 0, 7)) {
@@ -249,36 +256,40 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 						"SEGMENT NAME": effort.Segment.Name,
 						"SEGMENT ID":   effort.Segment.Id,
 					}).Errorf("unable to retrieve segment detail for %d %s", effort.Segment.Id, effort.Segment.Name)
-					res.Render(http.StatusInternalServerError, map[string]interface{}{
-						"error":   "Unable to retrieve segment detail",
-						"segment": effort.Segment,
-					})
-					return
+					return nil, err
 				}
 				log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
 				log.WithField("SEGMENT DETAIL ID", segmentDetail.Id).Infof("segment %d returned from strava", segmentDetail.Id)
 				updated, err := segment.UpdateSegment(segmentDetail)
 				if err != nil {
 					log.WithError(err).Errorf("unable to save segment detail %d to database", segmentDetail.Id)
-					return
+					return nil, err
 				}
 				log.WithField("SEGMENT ID", updated.ID).Infof("segment %d updated in DB", updated.ID)
 
+				count := 0
+				if segment, ok := userSegments[segment.ID]; ok {
+					count = segment.Count
+				}
 				// store updated segment in userSegments map
 				userSegments[updated.ID] = &models.UserSegment{
 					ID:           updated.ID,
 					Name:         updated.Name,
 					ActivityType: updated.ActivityType,
-					Count:        userSegments[updated.ID].Count,
+					Count:        count,
 				}
 			} else {
+				count := 0
+				if segment, ok := userSegments[segment.ID]; ok {
+					count = segment.Count
+				}
 				// segment was found and returned
 				// add segment to userSegments
 				userSegments[segment.ID] = &models.UserSegment{
 					ID:           segment.ID,
 					Name:         segment.Name,
 					ActivityType: segment.ActivityType,
-					Count:        userSegments[segment.ID].Count,
+					Count:        count,
 				}
 			}
 		}
@@ -292,9 +303,40 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	err = user.SaveUserSegments(userSegmentSlice)
 	if err != nil {
 		log.WithError(err).Errorf("unable to save user segments for user %d to database", user.ID)
+		return nil, err
+	}
+	return userSegmentSlice, nil
+}
+
+// GetSegmentsByUserIDFromStrava returns a list of segments for a specific user by ID from strava
+func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+	id := chi.URLParam(r, "id")
+
+	// convert user id string from url param to number
+	numID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		log.WithField("USER ID", numID).Error("unable to convert USER ID param")
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "unable to convert USER ID param",
+			"stack": err,
+		})
 		return
 	}
 
-	log.WithField("USER ID", user.ID).Infof("updated %d segments for user %v", len(userSegmentSlice), user.ID)
-	res.Render(http.StatusOK, userSegmentSlice)
+	// page is the amount of activites to request from Strava
+	var page = 30
+	// get users segments from Strava
+	userSegments, err := GetUserSegmentsFromStrava(numID, page)
+	if err != nil {
+		log.WithField("USER ID", numID).Errorf("unable to retrieve user %v segments from strava", numID)
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "unable to retrieve users segments from strava",
+			"stack": err,
+		})
+		return
+	}
+
+	log.WithField("USER ID", numID).Infof("found %d segments for user %v", len(userSegments), numID)
+	res.Render(http.StatusOK, userSegments)
 }
