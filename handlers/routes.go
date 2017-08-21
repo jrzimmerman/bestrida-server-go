@@ -105,7 +105,7 @@ func API() (mux *chi.Mux) {
 			r.Get("/{id}", GetChallengeByID)
 			r.Put("/accept", AcceptChallengeByID)
 			r.Put("/decline", DeclineChallengeByID)
-			r.Put("/complete", GetChallengeByID)
+			r.Put("/complete", CompleteChallengeByID)
 			r.Post("/create", CreateChallenge)
 		})
 

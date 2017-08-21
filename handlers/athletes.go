@@ -202,7 +202,7 @@ func GetUserSegmentsFromStrava(numID int64, page int) (userSegmentSlice []*model
 		}).Info("activity summary")
 
 		// request activity detail from strava to obtain segment effort information
-		activityDetail, err := strava.NewActivitiesService(client).Get(activitySummary.Id).Do()
+		activityDetail, err := strava.NewActivitiesService(client).Get(activitySummary.Id).IncludeAllEfforts().Do()
 		if err != nil {
 			log.WithFields(log.Fields{
 				"NAME": activityDetail.Name,

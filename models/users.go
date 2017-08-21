@@ -194,10 +194,3 @@ func (u User) SaveUserSegments(segments []*UserSegment) error {
 	log.WithField("USER ID", u.ID).Infof("stored %v segments in db for user %v", len(segments), u.ID)
 	return nil
 }
-
-// RetrieveFriend retrieves a friend from user collection by ID
-func (u User) RetrieveFriend(userID int64, friendID int64) (*Friend, error) {
-	s := session.Copy()
-	defer s.Close()
-	return nil, nil
-}

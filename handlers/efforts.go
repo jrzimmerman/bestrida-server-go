@@ -43,7 +43,7 @@ func GetEffortsBySegmentIDFromStravaWithUserID(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// use our access token to grab generic segment info
+	// use the users access token to grab segment effort info
 	client := strava.NewClient(user.Token)
 
 	log.Infof("Fetching segment %v info...", numSegmentID)
