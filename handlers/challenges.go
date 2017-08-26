@@ -187,8 +187,8 @@ func CompleteChallengeByID(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Infof("ChallengeID: %v", req.ID)
 	log.Infof("UserID: %v", req.UserID)
-	// Get challenge by ChallengeID
-	challenge, err := models.GetChallengeByID(req.ID)
+	// Get challenge by ChallengeID from DB
+	c, err := models.GetChallengeByID(req.ID)
 	if err != nil {
 		log.Errorf("unable to find challenge %v in DB", req.ID)
 		res.Render(http.StatusInternalServerError, map[string]interface{}{
@@ -197,15 +197,25 @@ func CompleteChallengeByID(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	// Get user by UserID from DB
+	u, err := models.GetUserByID(req.UserID)
+	if err != nil {
+		log.Errorf("unable to find user %v in DB", req.UserID)
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "Unable to find user in DB",
+			"stack": err,
+		})
+		return
+	}
 
 	// use our access token to grab generic segment info
-	client := strava.NewClient(accessToken)
+	client := strava.NewClient(u.Token)
 
 	// request efforts by segment ID between start and end dates
-	log.Infof("Fetching segment %v info...", challenge.Segment.ID)
-	log.Infof("beginning on %v", *challenge.Created)
-	log.Infof("ending on %v", *challenge.Expires)
-	efforts, err := strava.NewSegmentsService(client).ListEfforts(challenge.Segment.ID).AthleteId(req.UserID).DateRange(*challenge.Created, *challenge.Expires).Do()
+	log.Infof("Fetching segment %v info...", c.Segment.ID)
+	log.Infof("beginning on %v", *c.Created)
+	log.Infof("ending on %v", *c.Expires)
+	efforts, err := strava.NewSegmentsService(client).ListEfforts(c.Segment.ID).AthleteId(req.UserID).DateRange(*c.Created, *c.Expires).Do()
 	if err != nil {
 		res.Render(http.StatusInternalServerError, map[string]interface{}{
 			"error": "Unable to retrieve segment efforts info",
@@ -215,9 +225,59 @@ func CompleteChallengeByID(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
 
-	// update challenge in DB
+	// check for segment efforts
+	if len(efforts) > 0 {
+		// update challenge in DB
+		// efforts are returned sorted by time
+		e := efforts[0]
+		if e.Athlete.Id == c.Challengee.ID {
+			// user is challengee
+			c.Challengee.Time = &e.ElapsedTime
+			c.Challengee.AverageCadence = &e.AverageCadence
+			c.Challengee.AverageWatts = &e.AveragePower
+			c.Challengee.AverageHeartRate = &e.AverageHeartrate
+			c.Challengee.MaxHeartRate = &e.MaximumHeartrate
+			c.Challengee.Completed = true
+			c.UpdatedAt = time.Now()
+			if err := c.UpdateChallenge(); err != nil {
+				log.Error("unable to update challengee values in challenge")
+				res.Render(http.StatusInternalServerError, map[string]interface{}{
+					"error": "Unable to update challenger values in challenge",
+					"stack": err,
+				})
+				return
+			}
+		} else if e.Athlete.Id == c.Challenger.ID {
+			// user is challenger
+			c.Challenger.Time = &e.ElapsedTime
+			c.Challenger.AverageCadence = &e.AverageCadence
+			c.Challenger.AverageWatts = &e.AveragePower
+			c.Challenger.AverageHeartRate = &e.AverageHeartrate
+			c.Challenger.MaxHeartRate = &e.MaximumHeartrate
+			c.Challenger.Completed = true
+			c.UpdatedAt = time.Now()
+			if err := c.UpdateChallenge(); err != nil {
+				log.Error("unable to update challenger values in challenge")
+				res.Render(http.StatusInternalServerError, map[string]interface{}{
+					"error": "Unable to update challenger values in challenge",
+					"stack": err,
+				})
+				return
+			}
+		} else {
+			log.Error("effort athlete id doesnt match challengee or challenger ID, something went wrong")
+			res.Render(http.StatusInternalServerError, map[string]interface{}{
+				"error": "Effort athlete id doesnt match challengee or challenger ID, something went wrong",
+			})
+			return
+		}
+	} else {
+		log.Error("No efforts returned from Strava")
+		return
+	}
 
-	res.Render(http.StatusOK, efforts)
+	log.Infof("Challenge updated successfully")
+	res.Render(http.StatusOK, c)
 }
 
 // function checkForWinner (challengeId, callback) {
@@ -398,33 +458,43 @@ func CompleteChallengeByID(w http.ResponseWriter, r *http.Request) {
 //   });
 // }
 
-// module.exports.cronComplete = function() {
-//   var cutoff = new Date();
-//   var buffer = 0.5; // Buffer, in number of days
-//   cutoff.setTime(cutoff.getTime() - buffer * 86400000);
-//   Challenge.find({ expired: false, expires: { $lt: cutoff }})
-//   .then(function(result){
-//     console.log(result.length, 'expired challenges were found');
+// CronComplete finds a list of expired challenges and processes them for completion
+func CronComplete() {
+	expired, err := models.GetExpiredChallenges()
+	if err != nil {
+		log.Error("Unable to find expired challenges")
+		return
+	}
+	log.Infof("%d expired challenges returned from GetExpiredChallenges", len(*expired))
+	for _, challenge := range *expired {
+		log.Infof("challenge %v is expired on %v", challenge.ID, challenge.Expires)
 
-//     result.forEach(function(aChallenge) {
-//       var onlyOneUserCompletedChallenge = (aChallenge.challengeeCompleted && !aChallenge.challengerCompleted) ||
-//                                           (!aChallenge.challengeeCompleted && aChallenge.challengerCompleted);
+		// remove challenge if no one completed
+	}
 
-//       // If neither completed challenge, delete challenge
-//       if (!aChallenge.challengeeCompleted && !aChallenge.challengerCompleted) {
-//         Challenge.find({ _id: aChallenge.id })
-//         .remove(function(err, raw) {
-//           if (err) console.log(err);
-//           console.log('removed challenges: ', !!raw.nModified);
-//         });
+	//   Challenge.find({ expired: false, expires: { $lt: cutoff }})
+	//   .then(function(result){
+	//     console.log(result.length, 'expired challenges were found');
 
-//       // Else if only one user completed challenge, set default winner
-//       } else if (onlyOneUserCompletedChallenge) {
-//         updateChallengeResult(aChallenge);
-//       }
-//     });
-//   });
-// };
+	//     result.forEach(function(aChallenge) {
+	//       var onlyOneUserCompletedChallenge = (aChallenge.challengeeCompleted && !aChallenge.challengerCompleted) ||
+	//                                           (!aChallenge.challengeeCompleted && aChallenge.challengerCompleted);
+
+	//       // If neither completed challenge, delete challenge
+	//       if (!aChallenge.challengeeCompleted && !aChallenge.challengerCompleted) {
+	//         Challenge.find({ _id: aChallenge.id })
+	//         .remove(function(err, raw) {
+	//           if (err) console.log(err);
+	//           console.log('removed challenges: ', !!raw.nModified);
+	//         });
+
+	//       // Else if only one user completed challenge, set default winner
+	//       } else if (onlyOneUserCompletedChallenge) {
+	//         updateChallengeResult(aChallenge);
+	//       }
+	//     });
+	//   });
+}
 
 type updateRequest struct {
 	ID bson.ObjectId `json:"id"`

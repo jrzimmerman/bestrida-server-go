@@ -17,7 +17,7 @@ type Opponent struct {
 	AverageCadence   *float64 `json:"averageCadence,omitempty"`
 	AverageWatts     *float64 `json:"averageWatts,omitempty"`
 	AverageHeartRate *float64 `json:"averageHeartRate,omitempty"`
-	MaxHeartRate     *int     `json:"maxHeartRate,omitempty"`
+	MaxHeartRate     *float64 `json:"maxHeartRate,omitempty"`
 }
 
 // Challenge struct handles the database schema for a challenge
@@ -61,10 +61,10 @@ func CreateChallenge(c Challenge) error {
 	defer s.Close()
 
 	if err := s.DB(name).C("challenges").Insert(c); err != nil {
-		log.Errorf("Unable to create a new challenge:\n %v", err)
+		log.WithField("CHALLENGE ID", c.ID).Errorf("Unable to create a new challenge:\n %v", err)
 		return err
 	}
-	log.Infof("Challenge successfully created")
+	log.WithField("CHALLENGE ID", c.ID).Infof("Challenge %v successfully created", c.ID)
 	return nil
 }
 
@@ -74,10 +74,23 @@ func RemoveChallenge(id bson.ObjectId) error {
 	defer s.Close()
 
 	if err := s.DB(name).C("challenges").RemoveId(id); err != nil {
-		log.WithField("ID", id).Error("Unable to find challenge with id in database")
+		log.WithField("CHALLENGE ID", id).Error("Unable to find challenge with id in database")
 		return err
 	}
 	log.Infof("Challenge successfully removed: %v", id)
+	return nil
+}
+
+// UpdateChallenge updates a challenge from database
+func (c Challenge) UpdateChallenge() error {
+	s := session.Copy()
+	defer s.Close()
+
+	if err := s.DB(name).C("challenges").UpdateId(c.ID, c); err != nil {
+		log.WithField("CHALLENGE ID", c.ID).Errorf("Unable to update challenge %v in database", c.ID)
+		return err
+	}
+	log.Infof("Challenge successfully updated: %v", c.ID)
 	return nil
 }
 
@@ -165,8 +178,8 @@ func GetCompletedChallenges(userID int64) (*[]Challenge, error) {
 	var challenges []Challenge
 	err := s.DB(name).C("challenges").Find(bson.M{
 		"$or": []bson.M{
-			bson.M{"challengee.id": userID, "challengee.completed": true, "status": "complete"},
-			bson.M{"challenger.id": userID, "challenger.completed": true, "status": "complete"},
+			bson.M{"challengee.id": userID, "challengee.completed": true},
+			bson.M{"challenger.id": userID, "challenger.completed": true},
 		},
 	}).Sort("updatedAt", "expires").All(&challenges)
 	if err != nil {
@@ -174,6 +187,26 @@ func GetCompletedChallenges(userID int64) (*[]Challenge, error) {
 		return nil, err
 	}
 	log.Infof("found %d completed challenges for user %v", len(challenges), userID)
+
+	return &challenges, nil
+}
+
+// GetExpiredChallenges get expired challenges from database
+func GetExpiredChallenges() (*[]Challenge, error) {
+	s := session.Copy()
+	defer s.Close()
+
+	cutoff := time.Now()
+	var challenges []Challenge
+	err := s.DB(name).C("challenges").Find(bson.M{
+		"expired": false,
+		"expires": bson.M{"$lt": cutoff},
+	}).All(&challenges)
+	if err != nil {
+		log.Errorf("Unable to find expired challenges in database")
+		return nil, err
+	}
+	log.Infof("%d expired challenges found from DB", len(challenges))
 
 	return &challenges, nil
 }
