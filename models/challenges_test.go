@@ -8,7 +8,7 @@ import (
 
 // TestGetChallengeByIDSuccess tests for a successfully found ObjectID
 func TestGetChallengeByIDSuccess(t *testing.T) {
-	id := bson.ObjectIdHex("57be4f7ef7fb96130084f0b2")
+	id := bson.ObjectIdHex("5999f20bf022101f5b321aac")
 
 	challenge, err := GetChallengeByID(id)
 	if err != nil {
