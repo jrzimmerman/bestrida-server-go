@@ -23,7 +23,7 @@ func oAuthSuccess(auth *strava.AuthorizationResponse, w http.ResponseWriter, r *
 	userID := strconv.Itoa(int(auth.Athlete.Id))
 	log.WithField("USER TOKEN", userToken).Info("user token on oAuth success")
 	log.WithField("USER ID", userID).Info("user id on oAuth success")
-	url := "/login.html?oauth_token=" + userToken + "&userId=" + userID
+	url := "http://www.bestridaapp.com/login.html?oauth_token=" + userToken + "&userId=" + userID
 	http.Redirect(w, r, url, http.StatusFound)
 	_, err := models.RegisterUser(auth)
 	if err != nil {
