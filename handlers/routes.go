@@ -121,6 +121,7 @@ func API() (mux *chi.Mux) {
 	mux.Route("/strava", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/", AuthHandler)
+			r.Get("/callback", AuthHandler)
 		})
 	})
 
