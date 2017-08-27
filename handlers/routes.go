@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -15,7 +14,7 @@ import (
 )
 
 var authenticator = &strava.OAuthAuthenticator{
-	CallbackURL:            fmt.Sprintf("http://localhost:%s/strava/auth/callback", port),
+	CallbackURL:            "http://www.bestridaapp.com/strava/auth/callback",
 	RequestClientGenerator: nil,
 }
 var clientID = utils.GetEnvString("STRAVA_CLIENT_ID")
