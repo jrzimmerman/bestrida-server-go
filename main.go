@@ -39,7 +39,7 @@ func main() {
 	wg.Add(1)
 
 	go func() {
-		log.Infof("Listening on http://localhost:%s\n", port)
+		log.Infof("Listening on port %s", port)
 
 		srv.ListenAndServe()
 		wg.Done()
