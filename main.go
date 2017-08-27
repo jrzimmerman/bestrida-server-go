@@ -21,7 +21,7 @@ func main() {
 	// close DB connection
 	defer models.Close()
 	c := cron.New()
-	c.AddFunc("0 * * * * *", func() {
+	c.AddFunc("0 0 * * * *", func() {
 		log.Print("Starting cron complete")
 		handlers.CronComplete()
 		log.Print("Ending cron complete")

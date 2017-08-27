@@ -31,9 +31,9 @@ type Challenge struct {
 	Expires    *time.Time    `bson:"expires" json:"expires,omitempty"`
 	Completed  *time.Time    `bson:"completed" json:"completed,omitempty"`
 	Expired    bool          `bson:"expired" json:"expired"`
-	WinnerID   *int          `bson:"winnerId" json:"winnerId,omitempty"`
+	WinnerID   *int64        `bson:"winnerId" json:"winnerId,omitempty"`
 	WinnerName *string       `bson:"winnerName" json:"winnerName,omitempty"`
-	LoserID    *int          `bson:"loserId" json:"loserId,omitempty"`
+	LoserID    *int64        `bson:"loserId" json:"loserId,omitempty"`
 	LoserName  *string       `bson:"loserName" json:"loserName,omitempty"`
 	CreatedAt  time.Time     `bson:"createdAt" json:"createdAt"`
 	UpdatedAt  time.Time     `bson:"updatedAt" json:"updatedAt"`
