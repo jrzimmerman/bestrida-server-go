@@ -19,7 +19,7 @@ func TestGetChallengeByIDSuccess(t *testing.T) {
 	r.Get("/{id}", GetChallengeByID)
 	server := httptest.NewServer(r)
 
-	id := "5999f20bf022101f5b321aac"
+	id := "59a2ed8cf0221020f76a5e9d"
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+id, server.URL), nil)
@@ -53,7 +53,7 @@ func TestGetChallengeByIDFailureID(t *testing.T) {
 	r.Get("/{id}", GetChallengeByID)
 	server := httptest.NewServer(r)
 
-	id := "57fe7835bdb0181b8cfe0510"
+	id := "000000000000000000000000"
 
 	// Create the http request
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+id, server.URL), nil)

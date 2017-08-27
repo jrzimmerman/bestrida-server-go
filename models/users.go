@@ -194,3 +194,74 @@ func (u User) SaveUserSegments(segments []*UserSegment) error {
 	log.WithField("USER ID", u.ID).Infof("stored %v segments in db for user %v", len(segments), u.ID)
 	return nil
 }
+
+// IncrementWins increment wins and challenge count for a particular user by id
+func (u User) IncrementWins(id int64) error {
+	s := session.Copy()
+	defer s.Close()
+
+	// loop over friends for user to find id
+	for _, friend := range u.Friends {
+		if friend.ID == id {
+			// found friend.. increment count and wins
+			log.Infof("incrementing count and wins for friend %d", friend.ID)
+			friend.ChallengeCount = friend.ChallengeCount + 1
+			friend.Wins = friend.Wins + 1
+			break
+		}
+	}
+
+	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+		log.Error("unable to save user increment wins")
+		return err
+	}
+	log.WithField("USER ID", u.ID).Infof("incremented wins for challenge %d", id)
+	return nil
+}
+
+// IncrementLosses increment losses and challenge count for a particular user by id
+func (u User) IncrementLosses(id int64) error {
+	s := session.Copy()
+	defer s.Close()
+
+	// loop over friends for user to find id
+	for _, friend := range u.Friends {
+		if friend.ID == id {
+			// found friend.. increment count and losses
+			log.Infof("incrementing count and losses for friend %d", friend.ID)
+			friend.ChallengeCount = friend.ChallengeCount + 1
+			friend.Losses = friend.Losses + 1
+			break
+		}
+	}
+
+	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+		log.Error("unable to save user increment losses")
+		return err
+	}
+	log.WithField("USER ID", u.ID).Infof("incremented losses for challenge %d", id)
+	return nil
+}
+
+// IncrementSegments increment segment count for a particular user by id
+func (u User) IncrementSegments(id int64) error {
+	s := session.Copy()
+	defer s.Close()
+
+	// loop over segments for user to find id
+	for _, segment := range u.Segments {
+		if segment.ID == id {
+			// found friend.. increment count and losses
+			log.Infof("incrementing count for segment %d", segment.ID)
+			segment.Count = segment.Count + 1
+			break
+		}
+	}
+
+	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+		log.Error("unable to save user segments increment")
+		return err
+	}
+	log.WithField("USER ID", u.ID).Infof("incremented count for segment %d", id)
+	return nil
+}

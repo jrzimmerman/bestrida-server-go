@@ -296,6 +296,16 @@ func UpdateChallengeResult(id bson.ObjectId) error {
 		log.Errorf("challenge %v unable to be found in DB", id)
 		return err
 	}
+	challengee, err := models.GetUserByID(c.Challengee.ID)
+	if err != nil {
+		log.Error("unable to find challengee")
+		return err
+	}
+	challenger, err := models.GetUserByID(c.Challenger.ID)
+	if err != nil {
+		log.Error("unable to find challenger")
+		return err
+	}
 	// completed refers to the time challenge was marked as complete
 	completed := time.Now()
 	if c.Challengee.Completed == false && c.Challenger.Completed == false {
@@ -315,6 +325,10 @@ func UpdateChallengeResult(id bson.ObjectId) error {
 		c.Completed = &completed
 		c.Status = "complete"
 		c.Expired = true
+		challengee.IncrementWins(challenger.ID)
+		challenger.IncrementLosses(challengee.ID)
+		challengee.IncrementSegments(c.Segment.ID)
+		challenger.IncrementSegments(c.Segment.ID)
 	} else if c.Challengee.Completed == false && c.Challenger.Completed == true {
 		// challenger was the only one who made an effort during the challenge
 		c.WinnerID = &c.Challenger.ID
@@ -324,6 +338,10 @@ func UpdateChallengeResult(id bson.ObjectId) error {
 		c.Completed = &completed
 		c.Status = "complete"
 		c.Expired = true
+		challenger.IncrementWins(challengee.ID)
+		challengee.IncrementLosses(challenger.ID)
+		challenger.IncrementSegments(c.Segment.ID)
+		challengee.IncrementSegments(c.Segment.ID)
 	} else {
 		// both challengers completed, determine winner based upon times
 		if *c.Challengee.Time < *c.Challenger.Time {
@@ -335,6 +353,10 @@ func UpdateChallengeResult(id bson.ObjectId) error {
 			c.Completed = &completed
 			c.Status = "complete"
 			c.Expired = true
+			challengee.IncrementWins(challenger.ID)
+			challenger.IncrementLosses(challengee.ID)
+			challengee.IncrementSegments(c.Segment.ID)
+			challenger.IncrementSegments(c.Segment.ID)
 		} else if *c.Challenger.Time < *c.Challengee.Time {
 			//  challenger won
 			c.WinnerID = &c.Challenger.ID
@@ -344,12 +366,18 @@ func UpdateChallengeResult(id bson.ObjectId) error {
 			c.Completed = &completed
 			c.Status = "complete"
 			c.Expired = true
+			challenger.IncrementWins(challengee.ID)
+			challengee.IncrementLosses(challenger.ID)
+			challenger.IncrementSegments(c.Segment.ID)
+			challengee.IncrementSegments(c.Segment.ID)
 		} else {
 			// challenger and challengee times are the same
 			log.Info("challenger and challengee effort times are the same")
 			c.Completed = &completed
 			c.Status = "complete"
 			c.Expired = true
+			challengee.IncrementSegments(c.Segment.ID)
+			challenger.IncrementSegments(c.Segment.ID)
 		}
 	}
 	if err := c.UpdateChallenge(); err != nil {
