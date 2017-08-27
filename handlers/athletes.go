@@ -186,6 +186,95 @@ func GetUserSegmentsFromStrava(numID int64, page int) (userSegmentSlice []*model
 	// create new strava client with user token
 	client := strava.NewClient(user.Token)
 
+	log.Info("Fetching starred segments from Strava...\n")
+	starred, err := strava.NewCurrentAthleteService(client).ListStarredSegments().Do()
+	if err != nil {
+		return nil, err
+	}
+
+	// range over a users starred segments
+	// to obtain segment details to cache
+	for _, seg := range starred {
+		log.Infof("segment %v was starred by user", seg.Id)
+		log.WithField("SEGMENT", seg.Name).Info("segment effort from activity detail")
+		// check if segment is in database
+		segment, err := models.GetSegmentByID(seg.Id)
+		if err != nil {
+			// segment not found, make request to strava
+			log.WithField("SEGMENT ID", seg.Id).Infof("segment %v not found in database... saving", seg.Id)
+			segmentDetail, err := strava.NewSegmentsService(client).Get(seg.Id).Do()
+			if err != nil {
+				log.WithFields(log.Fields{
+					"SEGMENT NAME": seg.Name,
+					"SEGMENT ID":   seg.Id,
+				}).Errorf("unable to retrieve segment detail for %d %s", seg.Id, seg.Name)
+				return nil, err
+			}
+			log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+			log.WithField("SEGMENT DETAIL ID", segmentDetail.Id).Infof("segment %d returned from strava", segmentDetail.Id)
+			saved, err := models.SaveSegment(segmentDetail)
+			if err != nil {
+				log.WithError(err).Errorf("unable to save segment detail %d to database", segmentDetail.Id)
+				return nil, err
+			}
+			log.WithField("SEGMENT ID", saved.ID).Infof("segment %d stored in DB", saved.ID)
+
+			// store saved segment in userSegments map
+			userSegments[saved.ID] = &models.UserSegment{
+				ID:           saved.ID,
+				Name:         saved.Name,
+				ActivityType: saved.ActivityType,
+				Count:        0,
+			}
+
+		} else if time.Now().After(segment.UpdatedAt.AddDate(0, 0, 7)) {
+			// update segment in DB if segment data is stale
+			// this is required by Strava API license agreement
+			log.WithField("SEGMENT ID", seg.Id).Infof("segment %v is greater than 7 days old... updating", seg.Id)
+			segmentDetail, err := strava.NewSegmentsService(client).Get(seg.Id).Do()
+			if err != nil {
+				log.WithFields(log.Fields{
+					"SEGMENT NAME": seg.Name,
+					"SEGMENT ID":   seg.Id,
+				}).Errorf("unable to retrieve segment detail for %d %s", seg.Id, seg.Name)
+				return nil, err
+			}
+			log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+			log.WithField("SEGMENT DETAIL ID", segmentDetail.Id).Infof("segment %d returned from strava", segmentDetail.Id)
+			updated, err := segment.UpdateSegment(segmentDetail)
+			if err != nil {
+				log.WithError(err).Errorf("unable to save segment detail %d to database", segmentDetail.Id)
+				return nil, err
+			}
+			log.WithField("SEGMENT ID", updated.ID).Infof("segment %d updated in DB", updated.ID)
+
+			count := 0
+			if segment, ok := userSegments[segment.ID]; ok {
+				count = segment.Count
+			}
+			// store updated segment in userSegments map
+			userSegments[updated.ID] = &models.UserSegment{
+				ID:           updated.ID,
+				Name:         updated.Name,
+				ActivityType: updated.ActivityType,
+				Count:        count,
+			}
+		} else {
+			count := 0
+			if segment, ok := userSegments[segment.ID]; ok {
+				count = segment.Count
+			}
+			// segment was found and returned
+			// add segment to userSegments
+			userSegments[segment.ID] = &models.UserSegment{
+				ID:           segment.ID,
+				Name:         segment.Name,
+				ActivityType: segment.ActivityType,
+				Count:        count,
+			}
+		}
+	}
+
 	log.Info("Fetching athlete activities from Strava...\n")
 	activities, err := strava.NewCurrentAthleteService(client).ListActivities().Page(1).PerPage(page).Do()
 	if err != nil {

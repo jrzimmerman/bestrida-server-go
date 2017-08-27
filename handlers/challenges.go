@@ -238,7 +238,7 @@ func UpdateChallengeEffort(ID bson.ObjectId, UserID int64) (*models.Challenge, e
 		}
 	} else {
 		log.Info("No efforts returned from Strava")
-		return c, nil
+		return nil, err
 	}
 	return c, nil
 }
@@ -276,7 +276,7 @@ func CompleteChallengeByID(w http.ResponseWriter, r *http.Request) {
 	log.Infof("UserID: %v", req.UserID)
 
 	c, err := UpdateChallengeEffort(req.ID, req.UserID)
-	if err != nil {
+	if c == nil || err != nil {
 		log.Error("Could not update challenge effort")
 		res.Render(http.StatusInternalServerError, map[string]interface{}{
 			"error": "Could not update challenge effort",

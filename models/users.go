@@ -29,24 +29,25 @@ type UserSegment struct {
 
 // User struct handles the MongoDB schema for a user
 type User struct {
-	ID        int64          `bson:"_id" json:"id"`
-	FirstName string         `bson:"firstname" json:"firstName"`
-	LastName  string         `bson:"lastname" json:"lastName"`
-	FullName  string         `bson:"fullname" json:"fullName"`
-	City      string         `bson:"city" json:"city"`
-	State     string         `bson:"state" json:"state"`
-	Country   string         `bson:"country" json:"country"`
-	Gender    string         `bson:"gender" json:"gender"`
-	Token     string         `bson:"token" json:"token"`
-	Photo     string         `bson:"photo" json:"photo"`
-	Email     string         `bson:"email" json:"email"`
-	Friends   []*Friend      `bson:"friends" json:"friends"`
-	Segments  []*UserSegment `bson:"segments" json:"segments"`
-	Wins      int            `bson:"wins" json:"wins"`
-	Losses    int            `bson:"losses" json:"losses"`
-	CreatedAt time.Time      `bson:"createdAt" json:"createdAt,omitempty"`
-	UpdatedAt time.Time      `bson:"updatedAt" json:"updatedAt,omitempty"`
-	DeletedAt *time.Time     `bson:"deletedAt" json:"deletedAt,omitempty"`
+	ID             int64          `bson:"_id" json:"id"`
+	FirstName      string         `bson:"firstname" json:"firstName"`
+	LastName       string         `bson:"lastname" json:"lastName"`
+	FullName       string         `bson:"fullname" json:"fullName"`
+	City           string         `bson:"city" json:"city"`
+	State          string         `bson:"state" json:"state"`
+	Country        string         `bson:"country" json:"country"`
+	Gender         string         `bson:"gender" json:"gender"`
+	Token          string         `bson:"token" json:"token"`
+	Photo          string         `bson:"photo" json:"photo"`
+	Email          string         `bson:"email" json:"email"`
+	Friends        []*Friend      `bson:"friends" json:"friends"`
+	Segments       []*UserSegment `bson:"segments" json:"segments"`
+	Wins           int            `bson:"wins" json:"wins"`
+	Losses         int            `bson:"losses" json:"losses"`
+	ChallengeCount int            `bson:"challengeCount" json:"challengeCount"`
+	CreatedAt      time.Time      `bson:"createdAt" json:"createdAt,omitempty"`
+	UpdatedAt      time.Time      `bson:"updatedAt" json:"updatedAt,omitempty"`
+	DeletedAt      *time.Time     `bson:"deletedAt" json:"deletedAt,omitempty"`
 }
 
 // GetUserByID gets a single stored user from MongoDB
@@ -199,6 +200,8 @@ func (u User) SaveUserSegments(segments []*UserSegment) error {
 func (u User) IncrementWins(id int64) error {
 	s := session.Copy()
 	defer s.Close()
+	u.Wins = u.Wins + 1
+	u.ChallengeCount = u.ChallengeCount + 1
 
 	// loop over friends for user to find id
 	for _, friend := range u.Friends {
@@ -223,6 +226,8 @@ func (u User) IncrementWins(id int64) error {
 func (u User) IncrementLosses(id int64) error {
 	s := session.Copy()
 	defer s.Close()
+	u.Losses = u.Losses + 1
+	u.ChallengeCount = u.ChallengeCount + 1
 
 	// loop over friends for user to find id
 	for _, friend := range u.Friends {
@@ -251,7 +256,7 @@ func (u User) IncrementSegments(id int64) error {
 	// loop over segments for user to find id
 	for _, segment := range u.Segments {
 		if segment.ID == id {
-			// found friend.. increment count and losses
+			// found segment.. increment count
 			log.Infof("incrementing count for segment %d", segment.ID)
 			segment.Count = segment.Count + 1
 			break
