@@ -197,11 +197,11 @@ func (u User) SaveUserSegments(segments []*UserSegment) error {
 }
 
 // IncrementWins increment wins and challenge count for a particular user by id
-func (u User) IncrementWins(id int64) error {
+func (u *User) IncrementWins(id int64) error {
 	s := session.Copy()
 	defer s.Close()
-	u.Wins = u.Wins + 1
-	u.ChallengeCount = u.ChallengeCount + 1
+	u.Wins++
+	u.ChallengeCount++
 
 	// loop over friends for user to find id
 	for _, friend := range u.Friends {
@@ -214,6 +214,8 @@ func (u User) IncrementWins(id int64) error {
 		}
 	}
 
+	u.UpdatedAt = time.Now()
+
 	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
 		log.Error("unable to save user increment wins")
 		return err
@@ -223,11 +225,11 @@ func (u User) IncrementWins(id int64) error {
 }
 
 // IncrementLosses increment losses and challenge count for a particular user by id
-func (u User) IncrementLosses(id int64) error {
+func (u *User) IncrementLosses(id int64) error {
 	s := session.Copy()
 	defer s.Close()
-	u.Losses = u.Losses + 1
-	u.ChallengeCount = u.ChallengeCount + 1
+	u.Losses++
+	u.ChallengeCount++
 
 	// loop over friends for user to find id
 	for _, friend := range u.Friends {
@@ -240,6 +242,8 @@ func (u User) IncrementLosses(id int64) error {
 		}
 	}
 
+	u.UpdatedAt = time.Now()
+
 	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
 		log.Error("unable to save user increment losses")
 		return err
@@ -249,7 +253,7 @@ func (u User) IncrementLosses(id int64) error {
 }
 
 // IncrementSegments increment segment count for a particular user by id
-func (u User) IncrementSegments(id int64) error {
+func (u *User) IncrementSegments(id int64) error {
 	s := session.Copy()
 	defer s.Close()
 
@@ -262,6 +266,8 @@ func (u User) IncrementSegments(id int64) error {
 			break
 		}
 	}
+
+	u.UpdatedAt = time.Now()
 
 	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
 		log.Error("unable to save user segments increment")
