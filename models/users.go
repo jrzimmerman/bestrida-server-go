@@ -270,3 +270,31 @@ func (u User) IncrementSegments(id int64) error {
 	log.WithField("USER ID", u.ID).Infof("incremented count for segment %d", id)
 	return nil
 }
+
+// GetAllUsers returns all users from the DB
+func GetAllUsers() ([]User, error) {
+	s := session.Copy()
+	defer s.Close()
+
+	var users []User
+
+	if err := s.DB(name).C("users").Find(nil).Sort("updatedAt").All(&users); err != nil {
+		log.WithError(err).Error("Unable to return users")
+		return nil, err
+	}
+
+	return users, nil
+}
+
+// RemoveUser deletes user from DB
+func RemoveUser(ID int64) error {
+	sess := session.Copy()
+	defer sess.Close()
+
+	if err := sess.DB(name).C("users").RemoveId(ID); err != nil {
+		log.WithField("USER ID", ID).Errorf("Unable to remove user:\n %v", err)
+		return err
+	}
+
+	return nil
+}

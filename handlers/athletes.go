@@ -11,6 +11,34 @@ import (
 	strava "github.com/strava/go.strava"
 )
 
+// UpdateAthleteFromStrava updates athlete information from Strava
+func UpdateAthleteFromStrava(numID int64) (*models.User, error) {
+	user, err := models.GetUserByID(numID)
+	if err != nil {
+		log.WithField("ID", numID).Error("unable to retrieve user from database")
+		return nil, err
+	}
+
+	client := strava.NewClient(user.Token)
+
+	log.Info("Fetching athlete info...\n")
+	// retrieve athlete info from Strava API
+	athlete, err := strava.NewCurrentAthleteService(client).Get().Do()
+	if err != nil {
+		log.Error("Unable to retrieve athlete info from Strava")
+		return nil, err
+	}
+	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
+	log.Infof("athlete %v retrieved from strava", athlete.Id)
+
+	u, err := user.UpdateAthlete(athlete)
+	if err != nil {
+		log.WithError(err).Errorf("unable to update athlete %d", athlete.Id)
+		return nil, err
+	}
+	return u, err
+}
+
 // GetAthleteByIDFromStrava returns the strava athlete with the specified ID
 func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	res := New(w)
@@ -26,41 +54,52 @@ func GetAthleteByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := models.GetUserByID(numID)
+	u, err := UpdateAthleteFromStrava(numID)
 	if err != nil {
-		log.WithField("ID", numID).Error("unable to retrieve user from database")
-		res.Render(http.StatusInternalServerError, map[string]interface{}{
-			"error": "unable to retrieve user from database",
+		log.Errorf("unable to update athlete %d from Strava", numID)
+		res.Render(http.StatusBadRequest, map[string]interface{}{
+			"error": "unable to update athlete from Strava",
 			"stack": err,
 		})
 		return
 	}
 
-	client := strava.NewClient(user.Token)
-
-	log.Info("Fetching athlete info...\n")
-	// retrieve a list of users segments from Strava API
-	athlete, err := strava.NewCurrentAthleteService(client).Get().Do()
-	if err != nil {
-		res.Render(http.StatusInternalServerError, map[string]interface{}{
-			"error": "Unable to retrieve athlete info",
-			"stack": err,
-		})
-		return
-	}
-	log.Infof("rate limit percent: %v", strava.RateLimiting.FractionReached()*100)
-	log.Infof("athlete %v retrieved from strava", athlete.Id)
-
-	u, err := user.UpdateAthlete(athlete)
-	if err != nil {
-		log.WithError(err).Errorf("unable to update athlete %d", athlete.Id)
-		res.Render(http.StatusInternalServerError, map[string]interface{}{
-			"error": "Unable to update athlete in DB",
-			"stack": err,
-		})
-		return
-	}
 	res.Render(http.StatusOK, &u)
+}
+
+// UpdateAllUsersFromStrava returns all updated users from Strava
+func UpdateAllUsersFromStrava(w http.ResponseWriter, r *http.Request) {
+	res := New(w)
+
+	// get all users
+	users, err := models.GetAllUsers()
+	if err != nil {
+		log.Error("unable to get users")
+		return
+	}
+	// iterate over all users
+	for _, u := range users {
+		// update athlete
+		_, err := UpdateAthleteFromStrava(u.ID)
+		if err != nil {
+			log.Errorf("unable to update user %d", u.ID)
+			return
+		}
+		// update athlete friends
+		_, err = GetFriendsFromStrava(u.ID)
+		if err != nil {
+			log.Errorf("unable to update user %d friends", u.ID)
+			return
+		}
+		// update athlete segments
+		_, err = GetUserSegmentsFromStrava(u.ID, 100)
+		if err != nil {
+			log.Errorf("unable to update user %d segments", u.ID)
+			return
+		}
+	}
+	log.Info("all users updated successfully")
+	res.Render(http.StatusOK, "all users updated successfully")
 }
 
 // GetFriendsFromStrava gets a users friends from Strava
