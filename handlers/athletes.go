@@ -452,6 +452,17 @@ func GetSegmentsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get users friends from strava and save to DB to prevent transactional overwrites
+	_, err = GetFriendsFromStrava(numID)
+	if err != nil {
+		log.WithField("USER ID", numID).Errorf("unable to retrieve user %v friends from strava", numID)
+		res.Render(http.StatusInternalServerError, map[string]interface{}{
+			"error": "unable to retrieve users friends from strava",
+			"stack": err,
+		})
+		return
+	}
+
 	// page is the amount of activites to request from Strava
 	var page = 30
 	// get users segments from Strava
