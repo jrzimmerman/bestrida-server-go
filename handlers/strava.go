@@ -30,11 +30,11 @@ func oAuthSuccess(auth *strava.AuthorizationResponse, w http.ResponseWriter, r *
 		log.Errorf("error registering user %d", auth.Athlete.Id)
 	}
 
-	GetFriendsFromStrava(auth.Athlete.Id)
+	go GetFriendsFromStrava(auth.Athlete.Id)
 
 	// page refers to the number of activities to collect for a user
 	var page = 3
-	GetUserSegmentsFromStrava(auth.Athlete.Id, page)
+	go GetUserSegmentsFromStrava(auth.Athlete.Id, page)
 }
 
 func oAuthFailure(err error, w http.ResponseWriter, r *http.Request) {
