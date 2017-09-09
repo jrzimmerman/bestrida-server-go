@@ -116,24 +116,27 @@ func TestGetAthleteByIDFromStravaFailureURL(t *testing.T) {
 // 	log.Info("Athlete friends returned from Strava")
 // }
 
-// func TestGetFriendsByUserIDFromStravaFailureURL(t *testing.T) {
-// 	id := "fred"
+func TestGetFriendsByIDFromStravaFailureURL(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/{id}", GetFriendsByUserIDFromStrava)
+	server := httptest.NewServer(r)
 
-// 	// Create the http request
-// 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/friends", id), nil)
-// 	if err != nil {
-// 		t.Error("unable to generate request", err)
-// 	}
+	id := "fred"
 
-// 	// Send the request to the API
-// 	rec := httptest.NewRecorder()
-// 	API().ServeHTTP(rec, req)
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+id, server.URL), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
 
-// 	// Check the status code
-// 	if exp := http.StatusInternalServerError; rec.Code != exp {
-// 		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
-// 	}
-// }
+	// Send the request to the API
+	resp, err := http.DefaultClient.Do(req)
+
+	// Check the status code
+	if exp := http.StatusBadRequest; resp.StatusCode != exp {
+		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
+	}
+}
 
 // func TestGetFriendsByUserIDFromStravaFailureID(t *testing.T) {
 // 	id := 0
