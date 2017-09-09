@@ -79,8 +79,20 @@ func UpdateAllUsersFromStrava(w http.ResponseWriter, r *http.Request) {
 	}
 	// iterate over all users
 	for _, u := range users {
+		// remove friends and segments if older imported user
+		oldCreatedDate := time.Date(2017, 8, 29, 0, 0, 0, 0, time.UTC)
+		log.Infof("user %d created before %v", u.ID, oldCreatedDate)
+		oldUpdatedDate := time.Date(2017, 9, 9, 12, 0, 0, 0, time.UTC)
+		log.Infof("user %d updated before %v", u.ID, oldUpdatedDate)
+		if u.CreatedAt.Before(oldCreatedDate) && u.CreatedAt.Before(oldUpdatedDate) {
+			err := u.RemoveFriendsSegmentsFromUser()
+			if err != nil {
+				log.Errorf("unable to remove segments and friends from user %d:\n %v", u.ID, err)
+				return
+			}
+		}
 		// update athlete
-		_, err := UpdateAthleteFromStrava(u.ID)
+		_, err = UpdateAthleteFromStrava(u.ID)
 		if err != nil {
 			log.Errorf("unable to update user %d", u.ID)
 			return
@@ -92,7 +104,7 @@ func UpdateAllUsersFromStrava(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// update athlete segments
-		_, err = GetUserSegmentsFromStrava(u.ID, 100)
+		_, err = GetUserSegmentsFromStrava(u.ID, 1)
 		if err != nil {
 			log.Errorf("unable to update user %d segments", u.ID)
 			return
@@ -185,7 +197,7 @@ func GetFriendsByUserIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	numID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		log.WithField("ID", numID).Error("unable to convert ID param")
-		res.Render(http.StatusInternalServerError, map[string]interface{}{
+		res.Render(http.StatusBadRequest, map[string]interface{}{
 			"error": "unable to convert ID param",
 			"stack": err,
 		})

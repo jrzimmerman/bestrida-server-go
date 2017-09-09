@@ -96,6 +96,25 @@ func CreateUser(auth *strava.AuthorizationResponse) (*User, error) {
 	return &user, nil
 }
 
+// RemoveFriendsSegmentsFromUser modifies user in MongoDB
+func (u User) RemoveFriendsSegmentsFromUser() error {
+	s := session.Copy()
+	defer s.Close()
+
+	u.Friends = u.Friends[:0]
+	log.Infof("%d friends", len(u.Friends))
+	u.Segments = u.Segments[:0]
+	log.Infof("%d segments", len(u.Segments))
+	u.UpdatedAt = time.Now()
+
+	if err := s.DB(name).C("users").UpdateId(u.ID, &u); err != nil {
+		log.WithField("USER ID", u.ID).Errorf("Unable to remove segments and friends from user:\n %v", err)
+		return err
+	}
+	log.Infof("segments and friends removed from user %d", u.ID)
+	return nil
+}
+
 // UpdateUser updates user in MongoDB
 func (u User) UpdateUser(auth *strava.AuthorizationResponse) (*User, error) {
 	s := session.Copy()
