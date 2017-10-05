@@ -91,72 +91,81 @@ func TestGetSegmentByIDFailureInput(t *testing.T) {
 	}
 }
 
-// func TestGetSegmentByIDFromStravaSuccess(t *testing.T) {
-// 	// Hawk Hill segment ID
-// 	var id int64 = 229781
+func TestGetSegmentByIDFromStravaSuccess(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/{id}", GetSegmentByIDFromStrava)
+	server := httptest.NewServer(r)
 
-// 	// Create the http request
-// 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/segments/%v", id), nil)
-// 	if err != nil {
-// 		t.Error("unable to generate request", err)
-// 	}
+	// Hawk Hill segment ID
+	id := 229781
 
-// 	// Send the request to the API
-// 	rec := httptest.NewRecorder()
-// 	// handlers.API().ServeHTTP(rec, req)
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id), server.URL), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
 
-// 	// Check the status code
-// 	if exp := http.StatusOK; rec.Code != exp {
-// 		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
-// 	}
+	// Send the request to the API
+	resp, err := http.DefaultClient.Do(req)
 
-// 	// Unmarshal and check the response body
-// 	var s strava.SegmentDetailed
-// 	if err := json.NewDecoder(rec.Body).Decode(&s); err != nil {
-// 		t.Errorf("unable to decode response: %s", err)
-// 	}
+	// Check the status code
+	if exp := http.StatusOK; resp.StatusCode != exp {
+		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
+	}
 
-// 	log.WithField("Segment ID", s.Id).Info("Segment returned from database")
+	// Unmarshal and check the response body
+	var s models.Segment
+	if err := json.NewDecoder(resp.Body).Decode(&s); err != nil {
+		t.Errorf("unable to decode response: %s", err)
+	}
 
-// 	if s.Id != id {
-// 		t.Errorf("Expected segment ID %v, got %v instead", id, s.Id)
-// 	}
-// }
+	log.WithField("Segment ID", s.ID).Info("Segment returned from database")
 
-// func TestGetSegmentByIDFromStravaFailureID(t *testing.T) {
-// 	id := 0
+	if s.ID != int64(id) {
+		t.Errorf("unexpected segment")
+	}
+}
 
-// 	// Create the http request
-// 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/segments/%v", id), nil)
-// 	if err != nil {
-// 		t.Error("unable to generate request", err)
-// 	}
+func TestGetSegmentByIDFromStravaFailureID(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/{id}", GetSegmentByIDFromStrava)
+	server := httptest.NewServer(r)
 
-// 	// Send the request to the API
-// 	rec := httptest.NewRecorder()
-// 	// handlers.API().ServeHTTP(rec, req)
+	id := 0
 
-// 	// Check the status code
-// 	if exp := http.StatusInternalServerError; rec.Code != exp {
-// 		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
-// 	}
-// }
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id), server.URL), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
 
-// func TestGetSegmentByIDFromStravaFailureInput(t *testing.T) {
-// 	id := "test"
+	// Send the request to the API
+	resp, err := http.DefaultClient.Do(req)
 
-// 	// Create the http request
-// 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/segments/%v", id), nil)
-// 	if err != nil {
-// 		t.Error("unable to generate request", err)
-// 	}
+	// Check the status code
+	if exp := http.StatusInternalServerError; resp.StatusCode != exp {
+		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
+	}
+}
 
-// 	// Send the request to the API
-// 	rec := httptest.NewRecorder()
-// 	// handlers.API().ServeHTTP(rec, req)
+func TestGetSegmentByIDFromStravaFailureInput(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/{id}", GetSegmentByIDFromStrava)
+	server := httptest.NewServer(r)
 
-// 	// Check the status code
-// 	if exp := http.StatusInternalServerError; rec.Code != exp {
-// 		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
-// 	}
-// }
+	id := "test"
+
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+id, server.URL), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
+
+	// Send the request to the API
+	resp, err := http.DefaultClient.Do(req)
+
+	// Check the status code
+	if exp := http.StatusInternalServerError; resp.StatusCode != exp {
+		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
+	}
+}
