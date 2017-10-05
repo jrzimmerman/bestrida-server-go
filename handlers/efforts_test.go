@@ -1,45 +1,54 @@
 package handlers
 
-// import (
-// 	"encoding/json"
-// 	"fmt"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"testing"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"testing"
 
-// 	"github.com/jrzimmerman/bestrida-server-go/handlers"
-// 	strava "github.com/strava/go.strava"
-// )
+	"github.com/strava/go.strava"
 
-// func TestGetEffortsBySegmentIDFromStravaSuccess(t *testing.T) {
-// 	id := 17198619
-// 	segmentID := 9719730
+	"github.com/go-chi/chi"
+	log "github.com/sirupsen/logrus"
+)
 
-// 	// Create the http request
-// 	req, err := http.NewRequest("GET", fmt.Sprintf("/strava/athletes/%v/segments/%v/efforts", id, segmentID), nil)
-// 	if err != nil {
-// 		t.Error("unable to generate request", err)
-// 	}
+func TestGetEffortsBySegmentIDFromStravaWithUserIDSuccess(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/{id}/{segmentID}", GetEffortsBySegmentIDFromStravaWithUserID)
+	server := httptest.NewServer(r)
 
-// 	// Send the request to the API
-// 	rec := httptest.NewRecorder()
-// 	handlers.API().ServeHTTP(rec, req)
+	// User ID
+	id := 1027935
+	segmentID := 12967163
 
-// 	// Check the status code
-// 	if exp := http.StatusOK; rec.Code != exp {
-// 		t.Errorf("expected status code %v, got: %v", exp, rec.Code)
-// 	}
+	// Create the http request
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id)+"/"+strconv.Itoa(segmentID), server.URL), nil)
+	if err != nil {
+		t.Error("unable to generate request", err)
+	}
 
-// 	// Unmarshal and check the response body
-// 	var efforts []*strava.EffortSummary
-// 	if err := json.NewDecoder(rec.Body).Decode(&efforts); err != nil {
-// 		t.Errorf("unable to decode response: %s", err)
-// 	}
+	// Send the request to the API
+	resp, err := http.DefaultClient.Do(req)
 
-// 	if len(efforts) == 0 {
-// 		t.Errorf("no efforts returned")
-// 	}
-// }
+	// Check the status code
+	if exp := http.StatusOK; resp.StatusCode != exp {
+		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
+	}
+
+	// Unmarshal and check the response body
+	var efforts []*strava.SegmentEffortSummary
+	if err := json.NewDecoder(resp.Body).Decode(&efforts); err != nil {
+		t.Errorf("unable to decode response: %s", err)
+	}
+
+	log.Info("Segment efforts returned from Strava")
+
+	if len(efforts) <= 0 {
+		t.Errorf("segment efforts not found")
+	}
+}
 
 // func TestGetEffortsBySegmentIDFromStravaFailureUserID(t *testing.T) {
 // 	id := 0
