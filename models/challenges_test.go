@@ -49,3 +49,42 @@ func TestCreateChallengeFailure(t *testing.T) {
 		t.Error("Did not handle error creating a new test challenge")
 	}
 }
+
+func TestGetPendingChallengesSuccess(t *testing.T) {
+	var id int64 = 1027935
+
+	challenges, err := GetPendingChallenges(id)
+	if err != nil {
+		t.Errorf("Unable to retrieve pending challenges:\n %v", err)
+	}
+
+	if len(*challenges) <= 0 {
+		t.Errorf("No pending challenges found for user %d", id)
+	}
+}
+
+func TestGetActiveChallengesSuccess(t *testing.T) {
+	var id int64 = 1027935
+
+	challenges, err := GetActiveChallenges(id)
+	if err != nil {
+		t.Errorf("Unable to retrieve pending challenges:\n %v", err)
+	}
+
+	if len(*challenges) <= 0 {
+		t.Errorf("No pending challenges found for user %d", id)
+	}
+}
+
+func TestGetCompletedChallengesSuccess(t *testing.T) {
+	var id int64 = 1027935
+
+	challenges, err := GetCompletedChallenges(id)
+	if err != nil {
+		t.Errorf("Unable to retrieve pending challenges:\n %v", err)
+	}
+
+	if len(*challenges) <= 0 {
+		t.Errorf("No pending challenges found for user %d", id)
+	}
+}
