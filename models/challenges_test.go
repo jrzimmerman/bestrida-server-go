@@ -88,3 +88,16 @@ func TestGetCompletedChallengesSuccess(t *testing.T) {
 		t.Errorf("No pending challenges found for user %d", id)
 	}
 }
+
+func TestGetAllChallengesSuccess(t *testing.T) {
+	var id int64 = 1027935
+
+	challenges, err := GetAllChallenges(id)
+	if err != nil {
+		t.Errorf("Unable to retrieve challenges:\n %v", err)
+	}
+
+	if len(*challenges) <= 0 {
+		t.Errorf("No challenges found for user %d", id)
+	}
+}
