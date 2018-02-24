@@ -24,6 +24,11 @@
 #   go-tests = true
 #   unused-packages = true
 
+[metadata.heroku]
+  root-package = "bestrida-server-go"
+  go-version = "go1.10"
+  install = [ "./..." ]
+
 
 [[constraint]]
   branch = "master"
