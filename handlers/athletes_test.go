@@ -157,35 +157,35 @@ func TestGetFriendsByIDFromStravaFailureURL(t *testing.T) {
 // 	}
 // }
 
-func TestGetSegmentsByUserIDFromStravaSuccess(t *testing.T) {
-	r := chi.NewRouter()
-	r.Get("/{id}", GetSegmentsByUserIDFromStrava)
-	server := httptest.NewServer(r)
+// func TestGetSegmentsByUserIDFromStravaSuccess(t *testing.T) {
+// 	r := chi.NewRouter()
+// 	r.Get("/{id}", GetSegmentsByUserIDFromStrava)
+// 	server := httptest.NewServer(r)
 
-	id := 17198619
+// 	id := 17198619
 
-	// Create the http request
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id), server.URL), nil)
-	if err != nil {
-		t.Error("unable to generate request", err)
-	}
+// 	// Create the http request
+// 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/"+strconv.Itoa(id), server.URL), nil)
+// 	if err != nil {
+// 		t.Error("unable to generate request", err)
+// 	}
 
-	// Send the request to the API
-	resp, err := http.DefaultClient.Do(req)
+// 	// Send the request to the API
+// 	resp, err := http.DefaultClient.Do(req)
 
-	// Check the status code
-	if exp := http.StatusOK; resp.StatusCode != exp {
-		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
-	}
+// 	// Check the status code
+// 	if exp := http.StatusOK; resp.StatusCode != exp {
+// 		t.Errorf("expected status code %v, got: %v", exp, resp.StatusCode)
+// 	}
 
-	// Unmarshal and check the response body
-	var ss *[]strava.SegmentSummary
-	if err := json.NewDecoder(resp.Body).Decode(&ss); err != nil {
-		t.Errorf("unable to decode response: %s", err)
-	}
+// 	// Unmarshal and check the response body
+// 	var ss *[]strava.SegmentSummary
+// 	if err := json.NewDecoder(resp.Body).Decode(&ss); err != nil {
+// 		t.Errorf("unable to decode response: %s", err)
+// 	}
 
-	log.Info("Athlete segments returned from Strava")
-}
+// 	log.Info("Athlete segments returned from Strava")
+// }
 
 // // TestGetSegmentsByUserIDFromStravaFailureURL will test retrieving a user from strava with a bad athlete ID
 // func TestGetSegmentsByUserIDFromStravaFailureURL(t *testing.T) {
