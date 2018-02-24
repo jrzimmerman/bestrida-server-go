@@ -37,7 +37,7 @@ func GetSegmentByID(w http.ResponseWriter, r *http.Request) {
 	res.Render(http.StatusOK, segment)
 }
 
-// GetSegmentByIDWithUserID
+// GetSegmentByIDWithUserID gets a segment by ID from database using the users api key
 func GetSegmentByIDWithUserID(w http.ResponseWriter, r *http.Request) {
 	return
 }
@@ -79,7 +79,7 @@ func GetSegmentByIDFromStrava(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetSegmentByIDFromStravaWithUserID
+// GetSegmentByIDFromStravaWithUserID gets a segment by ID from strava using the users api key
 func GetSegmentByIDFromStravaWithUserID(w http.ResponseWriter, r *http.Request) {
 	return
 }
