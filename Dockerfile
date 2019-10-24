@@ -1,17 +1,18 @@
-# Start from a Debian image with the latest version of Go installed
-# and a workspace (GOPATH) configured at /go.
-FROM golang:1.13
+FROM golang:1.13 AS build
 
-# Copy the local package files to the container's workspace.
-COPY . /go/src/github.com/jrzimmerman/bestrida-server-go
+ENV GO111MODULE=on
 
-# Build the bestrida-server-go command inside the container.
-# (You may fetch or manage dependencies here,
-# either manually or with a tool like "godep".)
-RUN go install github.com/jrzimmerman/bestrida-server-go
+# Copy the code from the host and compile it
+WORKDIR /app
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /bestrida-server-go .
 
-# Run the bestrida-server-go command by default when the container starts.
-ENTRYPOINT /go/bin/bestrida-server-go
+FROM scratch
+COPY --from=build /bestrida-server-go .
 
-# Document that the service listens on port 4001.
+# Service listens on port 4001.
 EXPOSE 4001
+ENTRYPOINT ["./bestrida-server-go"]
